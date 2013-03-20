@@ -1,26 +1,84 @@
-#!/usr/bin/make
+########################
+### Pipeline Setting ###
+########################
 
-## Paths to tools used
-BREAKDANCER = /virdir/Scratch/software/breakdancer_deploy_1.3.5/
-BAM2CFG = $(BREAKDANCER)lib/breakdancer-max-unstable/bam2cfg.pl
-PINDEL = /virdir/Scratch/software/pindel/trunk/pindel
+SQ_CENTER = BGI
+PLATFORM = ILLUMINA
 
-##In order to determine the insert size for the bam file, we use the bam2cfg.pl from breakdancer.
-%.pindel.cfg: %.bam
-	perl $(BAM2CFG) $? > $*.bd.cfg;
-	## TODO extract mean from $*.bd.cfg and store it in $@;
-	##readgroup:NA    platform:illumina       map:ERR031544.bwa-0.7.2.sorted.bam      readlen:50.22   lib:NA  num:10001       lower:357.65    upper:444.94    mean:409.49     std:10.95       SWnormality:-69.73 exe:samtools view
-	##ERR031544.bwa-0.7.2.sorted.bam  409.49  ERR031544.bwa-0.7.2.sorted.bam
-	#python -c 'print open("$*.bd.cfg").read().split()[8].split(":")[1]' >> $@;
+# SGE configuration.
+SGE_PE = BWA
 
-## Create the native tabular output file for pindel
-%.pindel.tsv: %.pindel.cfg
-	## TODO Ensure the $(REFERENCE) variable from the parent folder makefile is available here
-	$(PINDEL) -f $(REFERENCE) -i $? -o $@ -I -T 4
+# Keep all files (Todo: In view of disk space, maybe we shouldn't do this?).
+.SECONDARY:
 
-## Convert the native tabular file for breakdancer to variant call format file
-%.bd.vcf: %.bd.tsv
-	## TODO Add the actual conversion script
+# Delete target if recipe returns error status code.
+.DELETE_ON_ERROR:
+
+# Makefile specific settings
+MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+
+#####################
+### Used Programs ###
+#####################
+
+# SASC programs folder for custom software. 
+PROGRAMS_DIR := /virdir/Scratch/software
+
+# Breakdancer
+BREAKDANCE_DIR := /virdir/Scratch/software/breakdancer_deploy_1.3.5
+BREAKDANCE := $(BREAKDANCE_DIR)/bin/breakdancer-max
+BREAKDANCE_BAM2CFG := perl $(BREAKDANCE_DIR)/lib/breakdancer-max-unstable/bam2cfg.pl
+
+# pindel 
+PINDEL_DIR := $(PROGRAMS_DIR)/pindel/trunk
+PINDEL := $(PINDEL_DIR)/pindel
+PINDEL2VCF := $(PINDEL_DIR)/pindel2vcf
+PINDEL_THREADS = 8
+PINDEL_OUTPUT_EXTENTIONS := .pindel_D .pindel_SI .pindel_LI .pindel_INT .pindel_INV .pindel_TD
+PINDEL_TOVCF_EXTENSION := .pindel_D .pindel_SI .pindel_INV .pindel_TD
+
+
+###############
+### Targets ###
+###############
+
+all: $(OUT)
+
+
+#########################
+### Rules and Recipes ###
+#########################
+
+# expect $(IN) = *.bam
+# Breakdancer configfile generation
+%.break.cfg: $(IN) $(IN).bai
+	$(BREAKDANCE_BAM2CFG) $< > $@
+
+# Pindel
+%.pindel.cfg: $(IN) %.break.cfg
+	(PINDEL_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean | cut -f 2 -d ':'`;echo -e '$<\t'$$PINDEL_INSERTSIZE'\t$<' > $@)
+
+%.pindel: %.pindel.cfg %.sort.bam %.sort.bam.bai %.ctx
+	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -i $< -o $@  -I -T $(PINDEL_THREADS) -b $(lastword $^) && touch $@
+%.pindel_D: %.pindel
+%.pindel_SI: %.pindel
+%.pindel_LI: %.pindel
+%.pindel_INT: %.pindel
+%.pindel_INV: %.pindel
+%.pindel_TD: %.pindel
+
+.SECONDEXPANSION:
+%.vcf: $$(basename $$@)
+	$(PINDEL2VCF) -p $(basename $@) -r $(REFERENCE) -R hg19 -d $(shell date +'%Y%m%d%H%M%S')
+
+%.vcf.gz: %.vcf
+	$(BGZIP) -c $< > $@
+
+%.tbi: %.vcf.gz
+	$(TABIX) -p vcf $<
+
+$(OUT): %.tbi %.vcf.gz
+    touch $(OUT)
 
 ## Tool installation
 install:
