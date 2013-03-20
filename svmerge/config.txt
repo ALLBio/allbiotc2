@@ -1,0 +1,17 @@
+exedir=/virdir/Scratch/software/SVMerge/Downloads/SVMerge-1.2/bin/
+defaultQueue=normal
+
+project=ALLBiohackathon
+name=Allbio
+version=P2
+svdir=sv_calls
+chrRange=1-4
+projdir=/virdir/Backup/work/SVMerge/ALLBiohackathon
+callerlist=pindel breakdancer
+
+bam=/virdir/Backup/reads_and_reference/bwa-0.7.2/ERR031544.bwa-0.7.2.sorted.bam
+bai=/virdir/Backup/reads_and_reference/bwa-0.7.2/ERR031544.bwa-0.7.2.sorted.bam.bai
+#bamdir=/virdir/Backup/reads_and_reference/bwa-0.7.2/
+#chrrefdir=/virdir/Backup/reads_and_reference/reference/
+reffile=/virdir/Backup/reads_and_reference/reference/TAIR9_chr_all.fas
+

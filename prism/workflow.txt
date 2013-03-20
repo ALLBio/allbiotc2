@@ -1,0 +1,17 @@
+# prism howto is available at:
+# http://compbio.cs.toronto.edu/prism/PRISM_README
+wget http://compbio.cs.toronto.edu/prism/releases/PRISM_1_1_6.linux.x86_64.tar.gz
+tar xvzf PRISM_1_1_6.linux.x86_64.tar.gz 
+cd PRISM_1_1_6
+make
+export PRISM_PATH=$PWD 
+# make directories for prism input and output
+cd ..
+mkdir prism_input
+mkdir prism_output
+# run prism script
+PRISM_1_1_6/toolkit/run_PRISM.sh -m 409 -e 73 -I prism_input -O prism_output -r TAIR9_chr_all.fas -i bwa_aligned.sam -a BWA
+
+# all variants are in file: prism_out/split_all.sam_ns_rmmul_cigar_sorted_sv
+# it can be convered with the scirpt prism2vcf.py
+# need to edit script to provide path to split_all file and name for vcf file created 
