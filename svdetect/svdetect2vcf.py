@@ -76,11 +76,17 @@ class SV2VCF(object):
             'DELETION': 'DEL',
             'TRANSLOC': 'TRANS',
             'INSERTION': 'INS',
+            'INVERSION': 'INV',
+            'DUPLICATION': 'DUP',
+            'SMALL_DUPLI': 'DUP_SMALL',
+            'LARGE_DUPLI': 'DUP_LARGE',
+            'INV_TRANSLOC': 'INV_TRANS',
+            'COAMPLICON': 'COAMP',
         }.get( flag, '.' )
 
     def parseFile( self, sFile, *args, **kwargs ):
         """
-            Returns gff format, converted from svdetect output
+            Returns vcf4.1 format, converted from svdetect output
         """
         with open(sFile,'r') as fd:
             # res = re.findall( r"^[\d]+\t(?P<type>[\w]+)[\w\d\" ]+\t", fd.read(), re.I | re.M )
@@ -96,7 +102,7 @@ class SV2VCF(object):
                 }
                 altbases = '.'
                 svtype = self.svtype( res.group('type') )
-                svend = res.group('end')
+                svend = int( res.group('end') )
                 SVLEN=0
                 if svtype == 'DEL':
                     SVLEN = ( int(res.group('end')) - int(res.group('start')) ) * -1
@@ -119,10 +125,13 @@ class SV2VCF(object):
                     'svlen': SVLEN,
                     'svtype': svtype,
                 }
-
-                output = "%(chromosome)s\t%(start)s\t%(id)s\t%(refbases)s\t%(altbases)s\t%(quality)s\t%(filter)s" % infodict
-                output += "\tPROGRAM=%(program)s;END=%(end)s;DP=%(supports)s;SVLEN=%(svlen)s;SVTYPE=%(svtype)s" % infofields
-                print output
+                if svtype == '.':
+                	# debug other SV types
+                	print res.groups()
+                	continue
+#                 output = "%(chromosome)s\t%(start)s\t%(id)s\t%(refbases)s\t%(altbases)s\t%(quality)s\t%(filter)s" % infodict
+#                 output += "\tPROGRAM=%(program)s;END=%(end)s;DP=%(supports)s;SVLEN=%(svlen)s;SVTYPE=%(svtype)s" % infofields
+#                 print output
 
 if __name__ == '__main__':
     """
