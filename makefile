@@ -64,3 +64,6 @@ bowtie_build: $(REFERENCE)
 
 %.bd.vcf: %.bam
 	cd breakdancer && $(MAKE) $@
+
+%.pindel.vcf: %.bam
+	cd pindel && $(MAKE) $@
