@@ -1,7 +1,12 @@
+###	USAGE:
+###		python gasv2vcf.py [variants_file] [output_file] [BWA/BT2]
+###
 import csv
+import sys
 
-variants_file = '/home/gasv/Example.bam.gasv.in.clusters'
-output_file = 'gasv_bwa.vcf'
+variants_file = sys.argv[1]
+output_file = sys.argv[2]
+prog = sys.argv[3]
 
 oh = open(output_file, 'w')
 with open(variants_file, 'r') as ih:
@@ -9,16 +14,36 @@ with open(variants_file, 'r') as ih:
     line = reader.next()
     for attrs in reader:
         chrom = attrs[1]
-        pos = attrs[2]
-        end = attrs[4]
+        pos1 = attrs[2]
+	pos = pos1.split(',')[0]
+        end1 = attrs[4]
+	end =end1.split(',')[0]
         id = "."
         ref = "."
-        var_type = attrs[7]
-        qual = "."
+	vt = attrs[7]
+	if vt == "D":
+            var_type = "DEL"
+	elif vt == "I":
+            var_type = "INV"
+	elif vt == "IR":
+            var_type = "INV"
+	elif vt == "I+":
+            var_type = "INV"
+	elif vt == "I-":
+            var_type = "INV"
+	elif vt == "V":
+            var_type = "DIV"
+	elif vt == "T":
+            var_type = "TRN"
+	elif vt == "TR":
+            var_type = "TRN"
+	elif vt == "TN":
+            var_type = "TRN"       
+	qual = "."
         alt = "."
         filt = "PASS"
-        var_len = int(end.split(',')[1]) - int(pos.split(',')[1]) + 1
-        info = "PROGRAM=BWA,GASV;SVTYPE=%s;SVLEN=%s" % (var_type, var_len)
+        var_len = int(end) - int(pos)
+        info = "PROGRAM=%s,GASV;SVTYPE=%s;SVLEN=%s" % (prog, var_type, var_len)
         vcf_list = [chrom, pos, id, ref, alt, qual, filt, info]
         vcf_line = "\t".join(vcf_list) + "\n"
         oh.write(vcf_line)
