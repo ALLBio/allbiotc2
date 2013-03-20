@@ -63,6 +63,4 @@ bowtie_build: $(REFERENCE)
 #####
 
 %.bd.vcf: %.bam
-	make -f breakdancer/makefile -n $@
-
-
+	cd breakdancer && $(MAKE) $@
