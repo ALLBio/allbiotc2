@@ -12,6 +12,7 @@ set -e;
 #FILE='ERR031544.bwa-0.7.2.sorted.bam';
 
 ## Testing
+FOLDER='./';
 FILE='sample.bam';
 touch $FILE;
 
@@ -23,5 +24,5 @@ touch $FILE;
 #sys     0m1.796s
 
 ## Run makefile
-make -n $FILE.bd.vcf;
+make -n $FOLDER/$(basename $FILE .bam).bd.vcf;
 
