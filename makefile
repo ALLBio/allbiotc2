@@ -38,6 +38,7 @@ all: $(RAW_FASTQC) $(BAM_FASTQC)
 ## Sort bam file using Samtools
 %.sort.bam: %.bam
 	samtools sort $? $@;
+	samtools index $@;
 
 ## Convert sam to bam using samtools
 %.bam: %.sam
@@ -53,9 +54,9 @@ bowtie_build: $(REFERENCE)
 	touch $@
 
 ## Map reads from a fastq files to the bowtie index
-%.sam: bowtie_build %.fastq
-	bowtie -q --tryhard --sam --best --strata -k 1 -m 1 $? > $@
-
+%.bowtie.sam: bowtie_build %.fastq
+	## TODO Use variables below instead of fixed paths
+	#bowtie2 -p 8 -t --un-conc Ler-unmap.fa  -x reference/TAIR9_chr_all -1 ERR031544_1.trimmed.fastq -2 ERR031544_2.trimmed.fastq -S Ler-bt2.sam
 
 #####
 ## Call the SV files
