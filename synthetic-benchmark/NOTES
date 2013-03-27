@@ -1,0 +1,2 @@
+blat TAIR9_chr_all.fas ler_contig/ler_contigs_velvet.fna blat.psl
+./convert-blat-output.py blat.psl TAIR9_chr_all.fas ler_contig/ler_contigs_velvet.fna aligned-contigs.bam
