@@ -64,13 +64,14 @@ class VCFLite2VCF(object):
         for record in vcf_reader:
             record.REF = self.getrefbase( record.CHROM, record.start, record.end )
             record.ALT = [self.getrefbase( record.CHROM, record.start, record.end )]
-
-            if 'INS' in record.INFO['SVTYPE']:
-                SVLEN = abs(int(record.INFO['SVLEN'][0]))
-                SVseq = SVLEN * "N"
-                record.ALT = [self.getrefbase( record.CHROM, record.start, record.end )+SVseq]
-            elif 'DEL' in record.INFO['SVTYPE']:
-                record.ALT = [self.getrefbase( record.CHROM, record.start, record.start+1 )]
+            if 'SVTYPE' in record.INFO:
+                if 'INS' in record.INFO['SVTYPE']:
+                    if 'SVLEN' in record.INFO:
+                        SVLEN = abs(int(record.INFO['SVLEN'][0]))
+                        SVseq = SVLEN * "N"
+                        record.ALT = [self.getrefbase( record.CHROM, record.start, record.end )+SVseq]
+                elif 'DEL' in record.INFO['SVTYPE']:
+                    record.ALT = [self.getrefbase( record.CHROM, record.start, record.start+1 )]
             vcf_writer.write_record(record)
 
 if __name__ == '__main__':
