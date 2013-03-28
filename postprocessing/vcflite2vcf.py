@@ -62,15 +62,14 @@ class VCFLite2VCF(object):
         vcf_reader = vcf.Reader( open( sFile, 'r' ) )
         vcf_writer = vcf.Writer( open( self.vcfoutput, 'w'), vcf_reader)
         for record in vcf_reader:
-            record.REF = self.getrefbase( record.CHROM, record.start, record.end )
-            record.ALT = [self.getrefbase( record.CHROM, record.start, record.end )]
-            if 'SVTYPE' in record.INFO:
+            if ('SVTYPE' in record.INFO) and ('SVLEN' in record.INFO):
+                SVLEN = abs(int(record.INFO['SVLEN']))
                 if 'INS' in record.INFO['SVTYPE']:
-                    if 'SVLEN' in record.INFO:
-                        SVLEN = abs(int(record.INFO['SVLEN'][0]))
-                        SVseq = SVLEN * "N"
-                        record.ALT = [self.getrefbase( record.CHROM, record.start, record.end )+SVseq]
+                    SVseq = SVLEN * "N"
+                    record.REF = self.getrefbase( record.CHROM, record.start, record.start + 1 )
+                    record.ALT = [self.getrefbase( record.CHROM, record.start, record.end )+SVseq]
                 elif 'DEL' in record.INFO['SVTYPE']:
+                    record.REF = self.getrefbase( record.CHROM, record.start, record.start + SVLEN + 1)
                     record.ALT = [self.getrefbase( record.CHROM, record.start, record.start+1 )]
             vcf_writer.write_record(record)
 
