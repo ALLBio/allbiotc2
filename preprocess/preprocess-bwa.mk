@@ -25,14 +25,14 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 ### Used Programs ###
 #####################
 
-# SASC programs folder for custum software. 
-SASC_PROGRAMS := /virdir/Scratch/software
+# Programs folder for custum software. 
+PROGRAMS := /virdir/Scratch/software
 
 # BWA. 
 BWA = $(BWA_DIR)/bwa
 
 # Dependencies
-BWA_DIR := /usr/bin
+BWA_DIR := $(PROGRAMS)/bwa-0.7.2
 BWA_THREADS = 4
 BWA_MAX_INSERT_SIZE := 500 #[500]
 
@@ -47,7 +47,7 @@ SAMTOOLS_DIR = /usr/bin
 SAMTOOLS = $(SAMTOOLS_DIR)/samtools
 
 # FastQC 
-FASTQC_DIR := /virdir/Scratch/software/FastQC
+FASTQC_DIR := $(PROGRAMS)/FastQC
 FASTQC := $(FASTQC_DIR)/fastqc
 FASTQC_THREADS := 4
 
@@ -57,8 +57,8 @@ FASTQC_THREADS := 4
 
 # References
 REFERENCE_DIR := ./reference
-REFERENCE_BWA := $(REFERENCE_DIR)/TAIR9_chr_all.fas
-REFERENCE := $(REFERENCE_DIR)/TAIR9_chr_all.fas
+REFERENCE_BWA := $(REFERENCE_DIR)/bwa/reference.fa
+REFERENCE := $(REFERENCE_DIR)/reference.fa
 
 ###################
 ### Input Files ###
