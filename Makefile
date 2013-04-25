@@ -14,7 +14,7 @@
 SGE_PE = BWA
 
 # Keep all intermediate files
-.SECONDARY:
+#.SECONDARY:
 
 # Delete target if recipe returns error status code.
 .DELETE_ON_ERROR:
@@ -35,7 +35,7 @@ PROGRAMS := /virdir/Scratch/software
 BWA = $(BWA_DIR)/bwa
 
 # Dependencies
-BWA_DIR := $(PROGRAMS)/bwa-0.7.2
+BWA_DIR := $(PROGRAMS)/bwa-0.7.4
 BWA_THREADS = 4
 BWA_MAX_INSERT_SIZE := 500 #[500]
 
@@ -98,7 +98,7 @@ QSCORE_FORMAT := sanger
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := bd pindel delly
+SV_PROGRAMS := bd pindel delly prism
 
 #SV_OUTPUT = $(foreach sample, $(SAMPLE) , $(sample).$(addsuffix .vcf, $(SV_PROGRAMS)))
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
@@ -111,7 +111,7 @@ all: fastqc alignment aligmentstats sv_vcf
 FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 
-BAM_FILES = $(addsuffix .sort.bam, $(SAMPLE)) $(addsuffix .sort.bam.bai, $(SAMPLE))
+BAM_FILES = $(addsuffix .sort.bam, $(SAMPLE)) $(addsuffix .sort.bam.bai, $(SAMPLE)) $(addsuffix .sam, $(SAMPLE))
 alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
 
 aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
@@ -178,13 +178,16 @@ $(OUT_DIR):
 #####
 
 %.bd.vcf: %.sort.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile REFERENCE=$(REFERENCE) $@
 
 %.pindel.vcf: %.sort.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) IN=$< OUT=$@
 
 %.delly.vcf: %.sort.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/delly/Makefile REFERENCE=$(REFERENCE) $@
+
+%.prism.vcf: %.sort.bam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/prism/Makefile REFERENCE=$(REFERENCE) $@
 
 
 

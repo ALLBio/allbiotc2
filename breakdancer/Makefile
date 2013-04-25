@@ -20,7 +20,7 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 #####################
 
 # Programs folder for custum software. 
-PROGRAMS := /virdir/Scratch/software
+PROGRAMS_DIR := /virdir/Scratch/software
 
 ## Paths to tools used
 BREAKDANCER_DIR = $(PROGRAMS_DIR)/breakdancer_deploy_1.3.5
