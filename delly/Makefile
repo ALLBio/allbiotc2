@@ -1,25 +1,42 @@
-#!/usr/bin/make
+########################
+### Pipeline Setting ###
+########################
 
+# SGE configuration.
+SGE_PE = BWA
+
+# Keep all files (Todo: In view of disk space, maybe we shouldn't do this?).
+.SECONDARY:
+
+# Delete target if recipe returns error status code.
+.DELETE_ON_ERROR:
+
+# Makefile specific settings
+THIS_MAKEFILE = $(firstword $(MAKEFILE_LIST))
+MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+
+#####################
+### Used Programs ###
+#####################
+
+# Programs folder for custum software. 
+PROGRAMS_DIR := /virdir/Scratch/software
 
 ## Paths to tools used
-FOLDER=/virdir/Scratch/software/delly_v0.0.9/
-DELLY=$(FOLDER)delly
-DUPPY=$(FOLDER)duppy
-INVY=$(FOLDER)invy
-JUMPY=$(FOLDER)jumpy
+DELLY_DIR = $(PROGRAMS_DIR)/delly_v0.0.9
+DELLY = $(DELLY_DIR)/delly
+DUPPY = $(DELLY_DIR)/duppy
+INVY = $(DELLY_DIR)/invy
+JUMPY = $(DELLY_DIR)/jumpy
 
 ##
-%.cleanheader.fa: %.fasta 
-	## TODO Insert code that cleaned the fasta headers
-	## Of note is that the reference fasta file had to be modified so as to reduce the headers to exclude any commenting past the first space in the header. Once this was done, the program ran relatively quickly.
-	
+%.reference.fa: $(REFERENCE)
+	cat $< | cut -f 1 -d' ' > $@
 
 ## 
-%.delly.tsv: %.bam
+%.delly.tsv: %.bam %.reference.fa
 	## TODO the source of some of the input files is unclear
-	#$(DELLY) -p -g CLEANHEADER.fa -b BREAKPOINT.txt -o $@ $?
-	#grep "Deletion" bwa-Delly-deletions.txt > bwa-Delly-deletions-list.tab
-	# perl delly-extract-convert.pl bwa-Delly-deletions-list.tab > Delly-bwa.vcf
+	$(DELLY) -p -g $(word 2, $^) -b BREAKPOINT.txt -o $@ $<
 
 %.duppy.tsv: %.bam
 	## TODO
@@ -33,7 +50,9 @@ JUMPY=$(FOLDER)jumpy
 	## TODO
 	# $(JUMPY)
 
-
+%.delly.vcf: %.delly.tsv
+	grep "Deletion" $< > $<.deletion.tab
+	perl $(MAKEFILE_DIR)/delly-extract-convert.pl $<.deletion.tab > $@
 
 ## I ran Delly on the Ler dataset from Bowtie2 using a 16 core virtual machine (ubuntu).  The following commands:
 ## 

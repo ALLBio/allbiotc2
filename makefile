@@ -20,6 +20,7 @@ SGE_PE = BWA
 .DELETE_ON_ERROR:
 
 # Makefile specific settings
+PWD = $(shell pwd)
 THIS_MAKEFILE = $(firstword $(MAKEFILE_LIST))
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
@@ -88,15 +89,23 @@ ROOT_OUT_DIR := $(IN_DIR)
 # real output directory
 OUT_DIR := $(ROOT_OUT_DIR)
 
+# Set the format of the quality scores in the input files (sanger or solexa).
+QSCORE_FORMAT := sanger
+
 ###############
 ### Targets ###
 ###############
 
 # outputdir for all recipies:
 
+SV_PROGRAMS := bd pindel delly
+
+#SV_OUTPUT = $(foreach sample, $(SAMPLE) , $(sample).$(addsuffix .vcf, $(SV_PROGRAMS)))
+SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
+sv_vcf: $(SV_OUTPUT)
 
 # Full pipeline 
-all: fastqc alignment aligmentstats
+all: fastqc alignment aligmentstats sv_vcf
 
 # Partial recipies
 FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
@@ -117,6 +126,7 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 test:
 	echo $(CURDIR)
 	echo $(MAKEFILE_DIR)
+	echo 
 
 #########################
 ### Rules and Recipes ###
@@ -137,8 +147,8 @@ $(OUT_DIR):
 	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
 
 # BWA Alignment create .sai files from fastq files
-%.sai: %$(LEFT_SUFFIX).trimmed.$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).trimmed.$(FASTQ_EXTENSION)
-	SGE_RREQ="-pe $(SGE_PE) $(BWA_OPTION_THREADS)" $(BWA) aln $(BWA_ALN_OPTIONS) -I $(REFERENCE_BWA) $< > $@
+%.sai: %.trimmed.$(FASTQ_EXTENSION)
+	SGE_RREQ="-pe $(SGE_PE) $(BWA_OPTION_THREADS)" $(BWA) aln $(BWA_ALN_OPTIONS) $(if $(findstring sanger, $(QSCORE_FORMAT)),,-I) $(REFERENCE_BWA) $< > $@
 
 # BWA Alignment, create a samfile from two sai files from a paired end sample
 %.sam: %$(LEFT_SUFFIX).sai %$(RIGHT_SUFFIX).sai %$(LEFT_SUFFIX).trimmed.$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).trimmed.$(FASTQ_EXTENSION)
@@ -161,15 +171,21 @@ $(OUT_DIR):
 	$(SAMTOOLS) index $<
 
 
+
+
 #####
 ## Call the SV files
 #####
 
 %.bd.vcf: %.sort.bam
-	$(MAKE) -f ./breakdancer/Makefile $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile $@
 
 %.pindel.vcf: %.sort.bam
-	$(MAKE) -f ./pindel/Makefile IN=$< OUT=$@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) IN=$< OUT=$@
+
+%.delly.vcf: %.sort.bam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/delly/Makefile REFERENCE=$(REFERENCE) $@
+
 
 
 
