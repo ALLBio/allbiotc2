@@ -9,7 +9,7 @@ open (DELLY, "<$ARGV[0]") or die "Can not open DELLY output file : $!\n";
 
 while (<DELLY>) {
 	my @cols = split(/\t/);
-	print  "$cols[0]\t$cols[1]\t\.\t\.\t\.\t\.\tPASS\tDELLY=BWA;SVTYPE=DEL;SVLEN=$cols[3]\n";
+	print  "$cols[0]\t$cols[1]\t\.\t\.\t\.\t\.\tPASS\tPROGRAM=BWA,DELLY;SVTYPE=DEL;SVLEN=$cols[3]\n";
 		
 }
 

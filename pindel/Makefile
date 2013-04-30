@@ -61,7 +61,7 @@ all: $(OUT)
 
 .SECONDEXPANSION:
 $(OUT): $$(basename $$@)
-	$(PINDEL2VCF) -p $(basename $@) -r $(REFERENCE) -R benchmarkgenome -d $(shell date +'%Y%m%d%H%M%S')
+	$(PINDEL2VCF) -P $(basename $@) -r $(REFERENCE) -R benchmarkgenome -d $(shell date +'%Y%m%d%H%M%S')
 
 ## Tool installation
 install:
