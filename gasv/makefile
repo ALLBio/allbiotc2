@@ -35,7 +35,7 @@ JAVA := java -Xms512m -Xmx2048m -jar
 GASVProHQ := $(GASV_DIR)/bin/GASVPro-HQ.sh
 GASVPro := $(GASV_DIR)/bin/GASVPro.sh
 
-GASV2VCF := gasv2vcf.py
+GASV2VCF := python $(MAKEFILE_DIR)/gasv2vcf.py
 
 
 ###############
@@ -49,7 +49,7 @@ all: $(OUT)
 #########################
 
 # expect $(IN) = *.bam
-%.gasv.in: $(IN)
+%.gasv.in: %.sort.bam
 	$(JAVA) $(BAM2GASV) $?
 	##or with options
 	# -MAPPING_QUALITY 30 -CUTOFF_LMINLMAX SD=3
@@ -67,9 +67,5 @@ all: $(OUT)
 %.gasv.in.clusters: %.gasv.in
 	$(JAVA) $(GASV) $?
 
-%.tsv: %.in.clusters:
-	## TODO
-	#$(GASVProHQ)
-
-$(OUT): 
-    touch $(OUT)
+%.gasv.vcf: %.gasv.in.clusters
+    $(GASV2VCF) %< %@ bwa

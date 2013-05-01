@@ -6,7 +6,7 @@ import sys
 
 variants_file = sys.argv[1]
 output_file = sys.argv[2]
-prog = sys.argv[3]
+prog = "GASV,%s" % sys.argv[3]
 
 oh = open(output_file, 'w')
 with open(variants_file, 'r') as ih:
