@@ -68,4 +68,4 @@ all: $(OUT)
 	$(JAVA) $(GASV) $?
 
 %.gasv.vcf: %.gasv.in.clusters
-    $(GASV2VCF) %< %@ bwa
+	$(GASV2VCF) %< %@ bwa
