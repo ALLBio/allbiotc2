@@ -49,7 +49,7 @@ all: $(OUT)
 
 # expect $(IN) = %.sort.bam
 # Breakdancer configfile generation
-%.bd.cfg: $(IN) $(IN).bai
+%.bd.cfg: %.sort.bam %.sort.bam.bai
 	$(BREAKDANCE_BAM2CFG) $< > $@
 
 # Pindel
