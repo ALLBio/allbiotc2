@@ -6,7 +6,7 @@ import sys
 
 variants_file = sys.argv[1]
 output_file = sys.argv[2]
-prog = "GASV,%s" % sys.argv[3]
+prog = "%s,GASV" % sys.argv[3]
 
 oh = open(output_file, 'w')
 with open(variants_file, 'r') as ih:
@@ -43,7 +43,7 @@ with open(variants_file, 'r') as ih:
         alt = "."
         filt = "PASS"
         var_len = int(end) - int(pos)
-        info = "PROGRAM=%s,GASV;SVTYPE=%s;SVLEN=%s" % (prog, var_type, var_len)
+        info = "PROGRAM=%s;SVTYPE=%s;SVLEN=%s" % (prog, var_type, var_len)
         vcf_list = [chrom, pos, id, ref, alt, qual, filt, info]
         vcf_line = "\t".join(vcf_list) + "\n"
         oh.write(vcf_line)

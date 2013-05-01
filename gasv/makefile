@@ -50,7 +50,7 @@ all: $(OUT)
 
 # expect $(IN) = *.bam
 %.gasv.in: %.sort.bam
-	$(JAVA) $(BAM2GASV) $?
+	$(JAVA) $(BAM2GASV) $< -OUTPUT_PREFIX $(basename $(basename $<))
 	##or with options
 	# -MAPPING_QUALITY 30 -CUTOFF_LMINLMAX SD=3
 	##or if multiple libraries:
@@ -65,7 +65,7 @@ all: $(OUT)
 	## Ler-bt2.sort.bam_all.translocation
 
 %.gasv.in.clusters: %.gasv.in
-	$(JAVA) $(GASV) $?
+	$(JAVA) $(GASV) --batch $?
 
 %.gasv.vcf: %.gasv.in.clusters
-	$(GASV2VCF) %< %@ bwa
+	$(GASV2VCF) %< %@ BWA
