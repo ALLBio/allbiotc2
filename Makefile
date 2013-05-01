@@ -67,9 +67,9 @@ REFERENCE_DIR := $(MAKEFILE_DIR)/reference
 REFERENCE_BWA := $(REFERENCE_DIR)/bwa/reference.fa
 REFERENCE := $(REFERENCE_DIR)/reference.fa
 
-###########################
-### Input/Outpout Files ###
-###########################
+##########################
+### Input/Output Files ###
+##########################
 
 # Files to proces
 FASTQ_EXTENSION := fastq
@@ -98,9 +98,7 @@ QSCORE_FORMAT := sanger
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := bd pindel delly prism
-
-#SV_OUTPUT = $(foreach sample, $(SAMPLE) , $(sample).$(addsuffix .vcf, $(SV_PROGRAMS)))
+SV_PROGRAMS := bd delly prism
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(SV_OUTPUT)
 
@@ -155,11 +153,11 @@ $(OUT_DIR):
 	$(BWA) sampe $(BWA_SAMPE_OPTIONS) $(REFERENCE_BWA) $^ > $@
 
 # SamTools view, convert sam to bam format
-%.bam: %.sam
+%.unsort.bam: %.sam
 	$(SAMTOOLS) view -bST $(REFERENCE) -o $@ $<
 
 # Samtools sort, sort the bamfile.
-%.sort.bam: %.bam
+%.sort.bam: %.unsort.bam
 	$(SAMTOOLS) sort $< $(basename $@)
 
 # Samtools Flagstat
