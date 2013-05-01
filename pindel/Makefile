@@ -53,7 +53,7 @@ all: $(OUT)
 	$(BREAKDANCE_BAM2CFG) $< > $@
 
 # Pindel
-%.pindel.cfg: $(IN) %.bd.cfg
+%.pindel.cfg: *.sort.bam %.bd.cfg
 	(PINDEL_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean | cut -f 2 -d ':'`;echo -e '$<\t'$$PINDEL_INSERTSIZE'\t$<' > $@)
 
 %.pindel: %.pindel.cfg %.sort.bam %.sort.bam.bai
