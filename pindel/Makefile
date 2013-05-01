@@ -60,8 +60,8 @@ all: $(OUT)
 	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -i $< -o $@  -I -T $(PINDEL_THREADS) && touch $@
 
 .SECONDEXPANSION:
-$(OUT): $$(basename $$@)
-	$(PINDEL2VCF) -P $(basename $@) -r $(REFERENCE) -R benchmarkgenome -d $(shell date +'%Y%m%d%H%M%S')
+%.pindel.vcf: %.pindel
+	$(PINDEL2VCF) -P $< -r $(REFERENCE) -R benchmarkgenome -d $(shell date +'%Y%m%d%H%M%S')
 
 ## Tool installation
 install:
