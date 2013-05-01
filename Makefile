@@ -14,7 +14,7 @@
 SGE_PE = BWA
 
 # Keep all intermediate files
-#.SECONDARY:
+.SECONDARY:
 
 # Delete target if recipe returns error status code.
 .DELETE_ON_ERROR:
@@ -98,7 +98,7 @@ QSCORE_FORMAT := sanger
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := bd delly prism
+SV_PROGRAMS := gasv bd pindel delly prism
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(SV_OUTPUT)
 
@@ -179,7 +179,7 @@ $(OUT_DIR):
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile REFERENCE=$(REFERENCE) $@
 
 %.pindel.vcf: %.sort.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) IN=$< OUT=$@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) $@
 
 %.delly.vcf: %.sort.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/delly/Makefile REFERENCE=$(REFERENCE) $@
@@ -187,7 +187,8 @@ $(OUT_DIR):
 %.prism.vcf: %.sort.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/prism/Makefile REFERENCE=$(REFERENCE) $@
 
-
+%.gasv.vcf: %.sort.bam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/gasv/makefile REFERENCE=$(REFERENCE) $@
 
 
 
