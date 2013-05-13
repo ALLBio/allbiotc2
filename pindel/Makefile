@@ -49,14 +49,14 @@ all: $(OUT)
 
 # expect $(IN) = %.sort.bam
 # Breakdancer configfile generation
-%.bd.cfg: %.sort.bam %.sort.bam.bai
+%.bd.cfg: %.bam %.bam.bai
 	$(BREAKDANCE_BAM2CFG) $< > $@
 
 # Pindel
-%.pindel.cfg: %.sort.bam %.bd.cfg
+%.pindel.cfg: %.bam %.bd.cfg
 	(PINDEL_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean | cut -f 2 -d ':'`;echo -e '$<\t'$$PINDEL_INSERTSIZE'\t$<' > $@)
 
-%.pindel: %.pindel.cfg %.sort.bam %.sort.bam.bai
+%.pindel: %.pindel.cfg %.bam %.bam.bai
 	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -i $< -o $@  -I -T $(PINDEL_THREADS) && touch $@
 
 %.pindel.vcf: %.pindel

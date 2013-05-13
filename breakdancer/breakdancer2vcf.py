@@ -51,7 +51,7 @@ def _parse_tsvfile(readable):
 
     # Determine dialect
     curr = readable.tell()
-    dialect = csv.Sniffer().sniff(readable.read(1000))
+    dialect = csv.Sniffer().sniff(readable.read(3000))
     readable.seek(curr)
 
     # Read file

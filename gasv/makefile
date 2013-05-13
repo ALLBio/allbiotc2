@@ -49,7 +49,7 @@ all: $(OUT)
 #########################
 
 # expect $(IN) = *.bam
-%.gasv.in: %.sort.bam
+%.gasv.in: %.bam
 	$(JAVA) $(BAM2GASV) $< -OUTPUT_PREFIX $(basename $(basename $<))
 	##or with options
 	# -MAPPING_QUALITY 30 -CUTOFF_LMINLMAX SD=3

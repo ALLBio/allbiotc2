@@ -29,7 +29,7 @@ BAM2CFG = $(BREAKDANCER_DIR)/lib/breakdancer-max-unstable/bam2cfg.pl
 BD2VCF = python $(MAKEFILE_DIR)/breakdancer2vcf.py
 
 ## Create configuration file for Breakdancer based on bam file
-%.bd.cfg: %.sort.bam
+%.bd.cfg: %.bam
 	perl $(BAM2CFG) $? > $@;
 
 ## Create the native tabular output file for breakdancer

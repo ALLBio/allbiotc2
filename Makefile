@@ -6,91 +6,49 @@
 # 
 # Adapted makefile configuration from Wibowo Arindrarto [SASC-LUMC]
 
-########################
-### Pipeline Setting ###
-########################
-
-# SGE configuration.
-SGE_PE = BWA
-
-# Keep all intermediate files
-.SECONDARY:
-
-# Delete target if recipe returns error status code.
-.DELETE_ON_ERROR:
-
+# Load all module definition
 # Makefile specific settings
-PWD = $(shell pwd)
-THIS_MAKEFILE = $(firstword $(MAKEFILE_LIST))
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+include $(MAKEFILE_DIR)/modules.mk
+include $(MAKEFILE_DIR)/conf.mk
 
-#####################
-### Used Programs ###
-#####################
+#######################
+### General Targets ###
+#######################
 
-# Programs folder for custum software. 
-PROGRAMS := /virdir/Scratch/software
+SAMPLE := $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) | python -c 'import os; import sys; print os.path.commonprefix(list(sys.stdin)).split("_")[0]')
+PAIRS := $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) | sed 's/$(LEFT_SUFFIX).$(FASTQ_EXTENSION)//')
+SINGLES := $(basename $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) *$(PEB_MARK).$(FASTQ_EXTENSION)))
 
-# BWA. 
-BWA = $(BWA_DIR)/bwa
+qc: $(addsuffix .fastqc, $(SINGLES))
+BAM_FILES = $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE)) $(addsuffix .sam, $(SAMPLE))
+alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
+aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
-# Dependencies
-BWA_DIR := $(PROGRAMS)/bwa-0.7.4
-BWA_THREADS = 4
-BWA_MAX_INSERT_SIZE := 500 #[500]
+# creates the output directory
+$(OUT_DIR):
+	mkdir -p $@
 
-#BWA Options
-BWA_OPTION_THREADS := 4
+%.fastqc: %.$(FASTQ_EXTENSION)
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/fastqc.mk $@
 
-BWA_ALN_OPTIONS := -t $(BWA_OPTION_THREADS)
-BWA_SAMPE_OPTIONS := -n25 -N25
+%.sam: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
 
-# Samtools.
-SAMTOOLS = $(SAMTOOLS_DIR)/samtools
-SAMTOOLS_DIR = /usr/bin
+%.bam: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
 
-# FastQC 
-FASTQC_DIR := $(PROGRAMS)/FastQC
-FASTQC := $(FASTQC_DIR)/fastqc
-FASTQC_THREADS := 4
+%.bam.bai: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
 
-# Sickle
-SICKLE_DIR := $(PROGRAMS)/sickle-master
-SICKLE := $(SICKLE_DIR)/sickle
+%.flagstat: %.bam
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
 
-####################
-### Dependencies ###
-####################
 
-# References
-REFERENCE_DIR := $(MAKEFILE_DIR)/reference
-REFERENCE_BWA := $(REFERENCE_DIR)/bwa/reference.fa
-REFERENCE := $(REFERENCE_DIR)/reference.fa
+.PHONY: clean
 
-##########################
-### Input/Output Files ###
-##########################
-
-# Files to proces
-FASTQ_EXTENSION := fastq
-LEFT_SUFFIX := _1
-RIGHT_SUFFIX := _2
-
-# input directory, defaults to current directory
-IN_DIR := $(shell pwd)
-
-SAMPLE := $(shell ls *$(LEFT_SUFFIX).$(FASTQ_EXTENSION) | python -c 'import os; import sys; print os.path.commonprefix(list(sys.stdin)).split("_")[0]')
-PAIRS := $(shell ls *$(LEFT_SUFFIX).$(FASTQ_EXTENSION) | sed 's/$(LEFT_SUFFIX).$(FASTQ_EXTENSION)//')
-SINGLES := $(basename $(shell ls *$(LEFT_SUFFIX).$(FASTQ_EXTENSION) *$(RIGHT_SUFFIX).$(FASTQ_EXTENSION)))
-
-# root output directory, defaults to input directory
-ROOT_OUT_DIR := $(IN_DIR)
-
-# real output directory
-OUT_DIR := $(ROOT_OUT_DIR)
-
-# Set the format of the quality scores in the input files (sanger or solexa).
-QSCORE_FORMAT := sanger
+clean:
+	rm -rf *.bam *.bai *.sam *.flagstat *.fastqc
 
 ###############
 ### Targets ###
@@ -98,21 +56,15 @@ QSCORE_FORMAT := sanger
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := gasv bd pindel delly prism
+SV_PROGRAMS := gasv pindel delly prism bd
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
-sv_vcf: $(SV_OUTPUT)
-
-# Full pipeline 
-all: fastqc alignment aligmentstats sv_vcf
+sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 
 # Partial recipies
 FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 
-BAM_FILES = $(addsuffix .sort.bam, $(SAMPLE)) $(addsuffix .sort.bam.bai, $(SAMPLE)) $(addsuffix .sam, $(SAMPLE))
-alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
-
-aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
+all: fastqc alignment aligmentstats sv_vcf
 
 .PHONY: test
 
@@ -124,14 +76,11 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 test:
 	echo $(CURDIR)
 	echo $(MAKEFILE_DIR)
-	echo 
+	echo $(SV_OUTPUT)
 
 #########################
 ### Rules and Recipes ###
 #########################
-# creates the output directory
-$(OUT_DIR):
-	mkdir -p $@
 
 # FastQC for quality control
 %.raw_fastqc: %$(LEFT_SUFFIX).$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).$(FASTQ_EXTENSION)
@@ -144,50 +93,50 @@ $(OUT_DIR):
 %.trimmed_fastqc: %$(LEFT_SUFFIX).trimmed.$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).trimmed.$(FASTQ_EXTENSION)
 	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
 
-# BWA Alignment create .sai files from fastq files
-%.sai: %.trimmed.$(FASTQ_EXTENSION)
-	SGE_RREQ="-pe $(SGE_PE) $(BWA_OPTION_THREADS)" $(BWA) aln $(BWA_ALN_OPTIONS) $(if $(findstring sanger, $(QSCORE_FORMAT)),,-I) $(REFERENCE_BWA) $< > $@
+## BWA Alignment create .sai files from fastq files
+#%.sai: %.trimmed.$(FASTQ_EXTENSION)
+#	SGE_RREQ="-pe $(SGE_PE) $(BWA_OPTION_THREADS)" $(BWA) aln $(BWA_ALN_OPTIONS) $(if $(findstring sanger, $(QSCORE_FORMAT)),,-I) $(REFERENCE_BWA) $< > $@
 
-# BWA Alignment, create a samfile from two sai files from a paired end sample
-%.sam: %$(LEFT_SUFFIX).sai %$(RIGHT_SUFFIX).sai %$(LEFT_SUFFIX).trimmed.$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).trimmed.$(FASTQ_EXTENSION)
-	$(BWA) sampe $(BWA_SAMPE_OPTIONS) $(REFERENCE_BWA) $^ > $@
+## BWA Alignment, create a samfile from two sai files from a paired end sample
+#%.sam: %$(LEFT_SUFFIX).sai %$(RIGHT_SUFFIX).sai %$(LEFT_SUFFIX).trimmed.$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).trimmed.$(FASTQ_EXTENSION)
+#	$(BWA) sampe $(BWA_SAMPE_OPTIONS) $(REFERENCE_BWA) $^ > $@
 
-# SamTools view, convert sam to bam format
-%.unsort.bam: %.sam
-	$(SAMTOOLS) view -bST $(REFERENCE) -o $@ $<
+## SamTools view, convert sam to bam format
+#%.unsort.bam: %.sam
+#	$(SAMTOOLS) view -bST $(REFERENCE) -o $@ $<
 
-# Samtools sort, sort the bamfile.
-%.sort.bam: %.unsort.bam
-	$(SAMTOOLS) sort $< $(basename $@)
+## Samtools sort, sort the bamfile.
+#%.sort.bam: %.unsort.bam
+#	$(SAMTOOLS) sort $< $(basename $@)
 
-# Samtools Flagstat
-%.flagstat: %.sort.bam
-	$(SAMTOOLS) flagstat $< > $@
+## Samtools Flagstat
+#%.flagstat: %.sort.bam
+#	$(SAMTOOLS) flagstat $< > $@
 
-# Samtools index
-%.sort.bam.bai: %.sort.bam
-	$(SAMTOOLS) index $<
-
-
+## Samtools index
+#%.sort.bam.bai: %.sort.bam
+#	$(SAMTOOLS) index $<
 
 
-#####
-## Call the SV files
-#####
 
-%.bd.vcf: %.sort.bam
+
+#######################
+## Call the SV files ##
+#######################
+
+%.bd.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile REFERENCE=$(REFERENCE) $@
 
-%.pindel.vcf: %.sort.bam
+%.pindel.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) $@
 
-%.delly.vcf: %.sort.bam
+%.delly.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/delly/Makefile REFERENCE=$(REFERENCE) $@
 
-%.prism.vcf: %.sort.bam
+%.prism.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/prism/Makefile REFERENCE=$(REFERENCE) $@
 
-%.gasv.vcf: %.sort.bam
+%.gasv.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/gasv/makefile REFERENCE=$(REFERENCE) $@
 
 
