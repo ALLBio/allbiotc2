@@ -12,8 +12,9 @@ SGE_PE = BWA
 .DELETE_ON_ERROR:
 
 # Makefile specific settings
-THIS_MAKEFILE = $(firstword $(MAKEFILE_LIST))
-MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+MAKEFILE_DIR := $(realpath $(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 #####################
 ### Used Programs ###
@@ -22,10 +23,12 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 # Programs
 PROGRAMS_DIR := /virdir/Scratch/software
 
+include $(MAKEFILE_DIR)/../conf.mk
+
 # Prism
 PRISM_DIR := $(PROGRAMS_DIR)/PRISM_1_1_6
 PRISM := $(PRISM_DIR)/toolkit/run_PRISM.sh
-PRISM2VCF := python $(MAKEFILE_DIR)/prism2vcf.py
+PRISM2VCF := python $(THIS_MAKEFILE_DIR)/prism2vcf.py
 
 ###############
 ### Targets ###

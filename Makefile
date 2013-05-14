@@ -5,6 +5,22 @@
 # (c) 2013 by Wai Yi Leung [SASC-LUMC]
 # 
 # Adapted makefile configuration from Wibowo Arindrarto [SASC-LUMC]
+# 
+# This pipeline is able to run with multiple aligners (aligner modules)
+#
+# Directory structure:
+# - input
+# - scripts
+# - run
+#   |
+#   - bwa-aln
+#   - bwa-mem
+#   - bt2
+# 
+# The pipeline will take care of the different aligners/folders
+
+
+
 
 # Load all module definition
 # Makefile specific settings
@@ -16,12 +32,10 @@ include $(MAKEFILE_DIR)/conf.mk
 ### General Targets ###
 #######################
 
-SAMPLE := $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) | python -c 'import os; import sys; print os.path.commonprefix(list(sys.stdin)).split("_")[0]')
-PAIRS := $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) | sed 's/$(LEFT_SUFFIX).$(FASTQ_EXTENSION)//')
-SINGLES := $(basename $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) *$(PEB_MARK).$(FASTQ_EXTENSION)))
+all: fastqc alignment aligmentstats sv_vcf
 
 qc: $(addsuffix .fastqc, $(SINGLES))
-BAM_FILES = $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE)) $(addsuffix .sam, $(SAMPLE))
+BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
 alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
 aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
@@ -32,13 +46,17 @@ $(OUT_DIR):
 %.fastqc: %.$(FASTQ_EXTENSION)
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/fastqc.mk $@
 
-%.sam: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
+# filename = test_bla
+# $(SAMPLE) = test
+# prerequist = test.1.trimmed.fastq
+
+%.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
 
-%.bam: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
+%.bam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
 
-%.bam.bai: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
+%.bam.bai: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
 
 %.flagstat: %.bam
@@ -48,7 +66,7 @@ $(OUT_DIR):
 .PHONY: clean
 
 clean:
-	rm -rf *.bam *.bai *.sam *.flagstat *.fastqc
+	rm -rf *.bam *.bai *.sam *.flagstat *.fastqc *~
 
 ###############
 ### Targets ###
@@ -56,7 +74,7 @@ clean:
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := gasv pindel delly prism bd
+SV_PROGRAMS := gasv delly bd prism pindel
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 
@@ -64,7 +82,6 @@ sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 
-all: fastqc alignment aligmentstats sv_vcf
 
 .PHONY: test
 
@@ -77,47 +94,22 @@ test:
 	echo $(CURDIR)
 	echo $(MAKEFILE_DIR)
 	echo $(SV_OUTPUT)
+	echo $(SAMPLE)
 
 #########################
 ### Rules and Recipes ###
 #########################
 
 # FastQC for quality control
-%.raw_fastqc: %$(LEFT_SUFFIX).$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).$(FASTQ_EXTENSION)
+%.raw_fastqc: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
 
-%$(LEFT_SUFFIX).trimmed.$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).trimmed.$(FASTQ_EXTENSION): %$(LEFT_SUFFIX).$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).$(FASTQ_EXTENSION)
+%$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t sanger -o $(basename $(word 1, $^)).trimmed.fastq -p $(basename $(word 2, $^)).trimmed.fastq -s $(basename $(word 1, $^)).singles.fastq -q 30 -l 25 > $(basename $(word 1, $^)).filtersync.stats
 
 # FastQC to check trimming
-%.trimmed_fastqc: %$(LEFT_SUFFIX).trimmed.$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).trimmed.$(FASTQ_EXTENSION)
+%.trimmed_fastqc: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
 	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
-
-## BWA Alignment create .sai files from fastq files
-#%.sai: %.trimmed.$(FASTQ_EXTENSION)
-#	SGE_RREQ="-pe $(SGE_PE) $(BWA_OPTION_THREADS)" $(BWA) aln $(BWA_ALN_OPTIONS) $(if $(findstring sanger, $(QSCORE_FORMAT)),,-I) $(REFERENCE_BWA) $< > $@
-
-## BWA Alignment, create a samfile from two sai files from a paired end sample
-#%.sam: %$(LEFT_SUFFIX).sai %$(RIGHT_SUFFIX).sai %$(LEFT_SUFFIX).trimmed.$(FASTQ_EXTENSION) %$(RIGHT_SUFFIX).trimmed.$(FASTQ_EXTENSION)
-#	$(BWA) sampe $(BWA_SAMPE_OPTIONS) $(REFERENCE_BWA) $^ > $@
-
-## SamTools view, convert sam to bam format
-#%.unsort.bam: %.sam
-#	$(SAMTOOLS) view -bST $(REFERENCE) -o $@ $<
-
-## Samtools sort, sort the bamfile.
-#%.sort.bam: %.unsort.bam
-#	$(SAMTOOLS) sort $< $(basename $@)
-
-## Samtools Flagstat
-#%.flagstat: %.sort.bam
-#	$(SAMTOOLS) flagstat $< > $@
-
-## Samtools index
-#%.sort.bam.bai: %.sort.bam
-#	$(SAMTOOLS) index $<
-
-
 
 
 #######################

@@ -7,7 +7,7 @@
 SGE_PE = BWA
 
 # Keep all intermediate files
-.SECONDARY:
+#.SECONDARY:
 
 # Delete target if recipe returns error status code.
 .DELETE_ON_ERROR:
@@ -23,6 +23,7 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 # Programs folder for custum software. 
 PROGRAMS := /virdir/Scratch/software
+PROGRAMS_DIR := $(PROGRAMS)
 
 # BWA. 
 BWA = $(BWA_DIR)/bwa
@@ -51,30 +52,41 @@ FASTQC_THREADS := 4
 SICKLE_DIR := $(PROGRAMS)/sickle-master
 SICKLE := $(SICKLE_DIR)/sickle
 
+# Samtools.
+SAMTOOLS_DIR = /usr/local/samtools/samtools-0.1.18
+SAMTOOLS = $(SAMTOOLS_DIR)/samtools
+
+
 ####################
 ### Dependencies ###
 ####################
 
 # References
-REFERENCE_DIR := $(MAKEFILE_DIR)/reference
-REFERENCE_BWA := $(REFERENCE_DIR)/bwa/reference.fa
+REFERENCE_DIR = $(MAKEFILE_DIR)/reference
+REFERENCE_BWA = $(REFERENCE_DIR)/bwa/reference.fa
 REFERENCE := $(REFERENCE_DIR)/reference.fa
 
 ##########################
 ### Input/Output Files ###
 ##########################
 
-# Files to proces
+# General settings
+PEA_MARK := _1
+PEB_MARK := _2
 FASTQ_EXTENSION := fastq
-LEFT_SUFFIX := _1
-RIGHT_SUFFIX := _2
+
+# Set the format of the quality scores in the input files (sanger or solexa).
+QSCORE_FORMAT := sanger
+THREADS := 8
+
+ALIGNER = bwa-mem
 
 # input directory, defaults to current directory
 IN_DIR := $(shell pwd)
 
-SAMPLE := $(shell ls *$(LEFT_SUFFIX).$(FASTQ_EXTENSION) | python -c 'import os; import sys; print os.path.commonprefix(list(sys.stdin)).split("_")[0]')
-PAIRS := $(shell ls *$(LEFT_SUFFIX).$(FASTQ_EXTENSION) | sed 's/$(LEFT_SUFFIX).$(FASTQ_EXTENSION)//')
-SINGLES := $(basename $(shell ls *$(LEFT_SUFFIX).$(FASTQ_EXTENSION) *$(RIGHT_SUFFIX).$(FASTQ_EXTENSION)))
+SAMPLE := $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) | python -c 'import os; import sys; print os.path.commonprefix(list(sys.stdin)).split(".")[0]')
+PAIRS := $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) | sed 's/$(PEA_MARK).$(FASTQ_EXTENSION)//')
+SINGLES := $(basename $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) *$(PEB_MARK).$(FASTQ_EXTENSION)))
 
 # root output directory, defaults to input directory
 ROOT_OUT_DIR := $(IN_DIR)
@@ -82,8 +94,6 @@ ROOT_OUT_DIR := $(IN_DIR)
 # real output directory
 OUT_DIR := $(ROOT_OUT_DIR)
 
-# Set the format of the quality scores in the input files (sanger or solexa).
-QSCORE_FORMAT := sanger
 
 
 
@@ -99,35 +109,7 @@ QSCORE_FORMAT := sanger
 
 
 
-# General settings
-PEA_MARK := _1
-PEB_MARK := _2
-FASTQ_EXTENSION := fastq
 
-QSCORE_FORMAT := sanger
-THREADS := 8
-
-ALIGNER = bwa-mem
-
-
-# Samtools.
-SAMTOOLS_DIR = /usr/local/samtools/samtools-0.1.18
-SAMTOOLS = $(SAMTOOLS_DIR)/samtools
-
-
-
-
-# SGE configuration.
-SGE_PE = BWA
-
-# Keep all files (Todo: In view of disk space, maybe we shouldn't do this?).
-.SECONDARY:
-.ONESHELL:
-# Delete target if recipe returns error status code.
-.DELETE_ON_ERROR:
-
-# Makefile specific settings
-MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 
 # Load configuration per pipeline

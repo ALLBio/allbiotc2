@@ -12,8 +12,9 @@ SGE_PE = BWA
 .DELETE_ON_ERROR:
 
 # Makefile specific settings
-THIS_MAKEFILE = $(firstword $(MAKEFILE_LIST))
-MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+MAKEFILE_DIR := $(realpath $(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 #####################
 ### Used Programs ###
@@ -22,11 +23,13 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 # Programs folder for custum software. 
 PROGRAMS_DIR := /virdir/Scratch/software
 
+include $(MAKEFILE_DIR)/../conf.mk
+
 ## Paths to tools used
 BREAKDANCER_DIR = $(PROGRAMS_DIR)/breakdancer_deploy_1.3.5
 BREAKDANCER_MAX = $(BREAKDANCER_DIR)/bin/breakdancer-max
 BAM2CFG = $(BREAKDANCER_DIR)/lib/breakdancer-max-unstable/bam2cfg.pl
-BD2VCF = python $(MAKEFILE_DIR)/breakdancer2vcf.py
+BD2VCF = python $(THIS_MAKEFILE_DIR)/breakdancer2vcf.py
 
 ## Create configuration file for Breakdancer based on bam file
 %.bd.cfg: %.bam

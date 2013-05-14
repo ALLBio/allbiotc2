@@ -12,15 +12,18 @@ SGE_PE = BWA
 .DELETE_ON_ERROR:
 
 # Makefile specific settings
-THIS_MAKEFILE = $(firstword $(MAKEFILE_LIST))
-MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+MAKEFILE_DIR := $(realpath $(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 #####################
 ### Used Programs ###
 #####################
 
-# Programs
+# Programs folder for custum software. 
 PROGRAMS_DIR := /virdir/Scratch/software
+
+include $(MAKEFILE_DIR)/../conf.mk
 
 # Breakdancer
 BREAKDANCE_DIR := $(PROGRAMS_DIR)/breakdancer_deploy_1.3.5

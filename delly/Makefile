@@ -12,8 +12,9 @@ SGE_PE = BWA
 .DELETE_ON_ERROR:
 
 # Makefile specific settings
-THIS_MAKEFILE = $(firstword $(MAKEFILE_LIST))
-MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+MAKEFILE_DIR := $(realpath $(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 #####################
 ### Used Programs ###
@@ -21,6 +22,8 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 # Programs folder for custum software. 
 PROGRAMS_DIR := /virdir/Scratch/software
+
+include $(MAKEFILE_DIR)/../conf.mk
 
 ## Paths to tools used
 DELLY_DIR = $(PROGRAMS_DIR)/delly_v0.0.9
@@ -52,7 +55,7 @@ JUMPY = $(DELLY_DIR)/jumpy
 
 %.delly.vcf: %.delly.tsv
 	grep "Deletion" $< > $<.deletion.tab
-	perl $(MAKEFILE_DIR)/delly-extract-convert.pl $<.deletion.tab > $@
+	perl $(THIS_MAKEFILE_DIR)/delly-extract-convert.pl $<.deletion.tab > $@
 
 ## I ran Delly on the Ler dataset from Bowtie2 using a 16 core virtual machine (ubuntu).  The following commands:
 ## 

@@ -1,5 +1,3 @@
-#!/usr/bin/make
-
 ########################
 ### Pipeline Setting ###
 ########################
@@ -17,7 +15,8 @@ SGE_PE = BWA
 .DELETE_ON_ERROR:
 
 # Makefile specific settings
-MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+MAKEFILE_DIR := $(realpath $(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 #####################
 ### Used Programs ###
@@ -25,6 +24,9 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 # programs folder for custom software.
 PROGRAMS_DIR := /virdir/Scratch/software
+
+include $(MAKEFILE_DIR)/../conf.mk
+
 
 # GASV
 GASV_DIR := $(PROGRAMS_DIR)/gasv
@@ -35,8 +37,7 @@ JAVA := java -Xms512m -Xmx2048m -jar
 GASVProHQ := $(GASV_DIR)/bin/GASVPro-HQ.sh
 GASVPro := $(GASV_DIR)/bin/GASVPro.sh
 
-GASV2VCF := python $(MAKEFILE_DIR)/gasv2vcf.py
-
+GASV2VCF := python $(THIS_MAKEFILE_DIR)/gasv2vcf.py
 
 ###############
 ### Targets ###
