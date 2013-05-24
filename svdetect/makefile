@@ -75,10 +75,10 @@ all: $(OUT)
 	$(CREATE_CONFIG) -s $< -o $@ -r $(word 2, $^) -b $(word 3, $^) -t $(THREADS) -d $(dir $@)/results -e $(dir $@)/tmp
 
 %.svdetect/results/sample.ab.bam.all.links.filtered: %.svdetect/sample.ab.bam %.svdetect/sample.sv.conf
-	export PERL5LIB=$(SVDETECT_LIB_DIR):$$PERL5LIB;$(SVDETECT) linking filtering -conf $(lastword $^)
+	SGE_RREQ="-now no -pe $(SGE_PE) $(THREADS)" export PERL5LIB=$(SVDETECT_LIB_DIR):$$PERL5LIB;$(SVDETECT) linking filtering -conf $(lastword $^)
 
 %.svdetect/results/sample.ab.bam.all.links.filtered.sv.txt: %.svdetect/results/sample.ab.bam.all.links.filtered %.svdetect/sample.sv.conf
-	export PERL5LIB=$(SVDETECT_LIB_DIR):$$PERL5LIB;$(SVDETECT) links2SV -conf $(lastword $^)
+	SGE_RREQ="-now no -pe $(SGE_PE) $(THREADS)" export PERL5LIB=$(SVDETECT_LIB_DIR):$$PERL5LIB;$(SVDETECT) links2SV -conf $(lastword $^)
 
 %.svdetect.vcf: %.svdetect/results/sample.ab.bam.all.links.filtered.sv.txt $(REFERENCE)
 	$(SVDETECT2VCF) -f $< -r $(lastword $^) > $@

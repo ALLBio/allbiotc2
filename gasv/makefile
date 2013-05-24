@@ -53,18 +53,6 @@ all: $(OUT)
 %.gasv/sample.gasv.in: %.bam
 	mkdir -p $(dir $@);
 	$(JAVA) $(BAM2GASV) $< -OUTPUT_PREFIX $(dir $@)sample
-	##or with options
-	# -MAPPING_QUALITY 30 -CUTOFF_LMINLMAX SD=3
-	##or if multiple libraries:
-	# -LIBRARY_SEPARATED all
-	##output_file(s):
-	## Ler-bt2.sort.bam.info,
-	## Ler-bt2.sort.bam.gasv.in,
-	## Ler-bt2.sort.bam_all.deletion,
-	## Ler-bt2.sort.bam_all.insertion,
-	## Ler-bt2.sort.bam_all.inversion,
-	## Ler-bt2.sort.bam_all.divergent,
-	## Ler-bt2.sort.bam_all.translocation
 
 %.gasv/sample.gasv.in.clusters: %.gasv/sample.gasv.in
 	cd $(dir $@);$(JAVA) $(GASV) --batch $?

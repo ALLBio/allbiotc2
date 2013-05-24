@@ -49,7 +49,7 @@ all: $(OUT)
 
 %.clever.vcf: $(IN)
 	mkdir -p $(basename $<).clever/;
-	$(CLEVER) -f --use_xa --sorted -T $(THREADS) -k $< $(REFERENCE) $(basename $<).clever/; cp $(basename $<).clever/predictions.vcf $@
+	SGE_RREQ="-now no -pe $(SGE_PE) $(THREADS)" $(CLEVER) -f --use_xa --sorted -T $(THREADS) -k $< $(REFERENCE) $(basename $<).clever/; cp $(basename $<).clever/predictions.vcf $@
 
 .PHONY: install
 ## Tool installation
