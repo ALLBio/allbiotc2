@@ -63,8 +63,6 @@ class SV2VCF(object):
         if name: yield (name, ''.join(seq))
 
     def getrefbase( self, chromosome, start, stop ):
-#             print chromosome, start, stop
-#             print self.reference.keys()
             chromosome =  self.reference.get( chromosome.replace('chr',''), None )
             return chromosome[ int(start )-1:int(stop)-1 ]
     
@@ -126,12 +124,16 @@ class SV2VCF(object):
                     'svtype': svtype,
                 }
                 if svtype == '.':
-                	# debug other SV types
-                	print res.groups()
-                	continue
-#                 output = "%(chromosome)s\t%(start)s\t%(id)s\t%(refbases)s\t%(altbases)s\t%(quality)s\t%(filter)s" % infodict
-#                 output += "\tPROGRAM=%(program)s;END=%(end)s;DP=%(supports)s;SVLEN=%(svlen)s;SVTYPE=%(svtype)s" % infofields
-#                 print output
+                    continue
+                    # debug other SV types
+#                   print res.groups()
+#                output = "%(chromosome)s\t%(start)s\t%(id)s\t%(refbases)s\t%(altbases)s\t%(quality)s\t%(filter)s" % infodict
+#                output += "\tPROGRAM=%(program)s;END=%(end)s;DP=%(supports)s;SVLEN=%(svlen)s;SVTYPE=%(svtype)s" % infofields
+                output = "%(chromosome)s\t%(start)s\t.\t.\t.\t%(quality)s\t%(filter)s" % infodict
+                output += "\tPROGRAM=%(program)s;SVTYPE=%(svtype)s;SVLEN=%(svlen)s" % infofields
+
+                print output
+
 
 if __name__ == '__main__':
     """
@@ -140,7 +142,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # args for first pair
     parser.add_argument('-f', '--file', dest='svfile', type=str,
-            help='Pindel file')
+            help='svdetect file')
     parser.add_argument('-r', '--reference', dest='reference', type=str,
             help='reference file')
 

@@ -52,19 +52,21 @@ all: $(OUT)
 
 # expect $(IN) = %.sort.bam
 # Breakdancer configfile generation
-%.bd.cfg: %.bam %.bam.bai
+%.pindel/bd.cfg: %.bam %.bam.bai
+	mkdir -p $(dir $@);
 	$(BREAKDANCE_BAM2CFG) $< > $@
 
 # Pindel
-%.pindel.cfg: %.bam %.bd.cfg
+%.pindel/pindel.cfg: %.bam %.pindel/bd.cfg
 	(PINDEL_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean | cut -f 2 -d ':'`;echo -e '$<\t'$$PINDEL_INSERTSIZE'\t$<' > $@)
 
-%.pindel: %.pindel.cfg %.bam %.bam.bai
+%.pindel/pindel_res: %.pindel/pindel.cfg %.bam %.bam.bai
 	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -i $< -o $@  -I -T $(PINDEL_THREADS) && touch $@
 
-%.pindel.vcf: %.pindel
-	$(PINDEL2VCF) -P $< -r $(REFERENCE) -R benchmarkgenome -d $(shell date +'%Y%m%d%H%M%S')
+%.pindel.vcf: %.pindel/pindel_res
+	$(PINDEL2VCF) -P $< -r $(REFERENCE) -R benchmarkgenome -d $(shell date +'%Y%m%d%H%M%S') -v $@
 
+.PHONY: install
 ## Tool installation
 install:
 	sudo cpan Statistics::Descriptive;

@@ -50,8 +50,9 @@ all: $(OUT)
 #########################
 
 # expect $(IN) = *.bam
-%.gasv.in: %.bam
-	$(JAVA) $(BAM2GASV) $< -OUTPUT_PREFIX $(basename $(basename $<))
+%.gasv/sample.gasv.in: %.bam
+	mkdir -p $(dir $@);
+	$(JAVA) $(BAM2GASV) $< -OUTPUT_PREFIX $(dir $@)sample
 	##or with options
 	# -MAPPING_QUALITY 30 -CUTOFF_LMINLMAX SD=3
 	##or if multiple libraries:
@@ -65,8 +66,8 @@ all: $(OUT)
 	## Ler-bt2.sort.bam_all.divergent,
 	## Ler-bt2.sort.bam_all.translocation
 
-%.gasv.in.clusters: %.gasv.in
-	$(JAVA) $(GASV) --batch $?
+%.gasv/sample.gasv.in.clusters: %.gasv/sample.gasv.in
+	cd $(dir $@);$(JAVA) $(GASV) --batch $?
 
-%.gasv.vcf: %.gasv.in.clusters
+%.gasv.vcf: %.gasv/sample.gasv.in.clusters
 	$(GASV2VCF) $< $@ BWA

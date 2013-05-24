@@ -33,27 +33,28 @@ INVY = $(DELLY_DIR)/invy
 JUMPY = $(DELLY_DIR)/jumpy
 
 ##
-%.reference.fa: $(REFERENCE)
+%.delly/reference.fa: $(REFERENCE)
+	mkdir -p $(dir $@);
 	cat $< | cut -f 1 -d' ' > $@
 
 ## 
-%.delly.tsv: %.bam %.reference.fa
+%.delly/delly.tsv: %.bam %.delly/reference.fa
 	## TODO the source of some of the input files is unclear
-	$(DELLY) -p -g $(word 2, $^) -b BREAKPOINT.txt -o $@ $<
+	$(DELLY) -p -g $(word 2, $^) -b $(addprefix BREAKPOINT.txt, $(dir $@)) -o $@ $<
 
-%.duppy.tsv: %.bam
+%.delly/duppy.tsv: %.bam
 	## TODO
 	# $(DUPPY)
 
-%.invy.tsv: %.bam
+%.delly/invy.tsv: %.bam
 	## TODO
 	# $(INVY)
 
-%.jumpy.tsv: %.bam
+%.delly/jumpy.tsv: %.bam
 	## TODO
 	# $(JUMPY)
 
-%.delly.vcf: %.delly.tsv
+%.delly.vcf: %.delly/delly.tsv
 	grep "Deletion" $< > $<.deletion.tab
 	perl $(THIS_MAKEFILE_DIR)/delly-extract-convert.pl $<.deletion.tab > $@
 

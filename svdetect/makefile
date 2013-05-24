@@ -1,4 +1,7 @@
-#!/usr/bin/make
+# Makefile :: SVDetect module for SV-benchmarking
+#
+# (c) 2013 by Wai Yi Leung [SASC-LUMC]
+# AllBio Hackathon
 
 ########################
 ### Pipeline Setting ###
@@ -17,7 +20,8 @@ SGE_PE = BWA
 .DELETE_ON_ERROR:
 
 # Makefile specific settings
-MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+MAKEFILE_DIR := $(realpath $(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 #####################
 ### Used Programs ###
@@ -26,11 +30,15 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 # programs folder for custom software.
 PROGRAMS_DIR := /virdir/Scratch/software
 
+include $(MAKEFILE_DIR)/../conf.mk
+
 # SVDetect
 SVDETECT_DIR := $(PROGRAMS_DIR)/SVDetect_r0.8b
+SVDETECT_LIB_DIR := $(PROGRAMS_DIR)/SVDetect_r0.8b/lib
 SVDETECT := $(SVDETECT_DIR)/bin/SVDetect
-SVDETECT_BAMPROCESSING := perl $(SVDETECT_DIR)/lib/BAM_preprocessingPairs.pl
-SVDETECT2VCF := python $(MAKEFILE_DIR)/svdetect2vcf.py
+SVDETECT_BAMPROCESSING := perl $(SVDETECT_DIR)/scripts/BAM_preprocessingPairs.pl
+SVDETECT2VCF := python $(THIS_MAKEFILE_DIR)/svdetect2vcf.py
+CREATE_CONFIG := bash $(THIS_MAKEFILE_DIR)/create_conf.sh
 
 ###############
 ### Targets ###
@@ -46,13 +54,31 @@ all: $(OUT)
 
 # print the chromosome sizes to svdetect fasta index.
 %.svdetect.fai: $(REFERENCE).fai
-	awk '{print $1,$1,$2}' $< >$@
+	awk '{print $$1,$$1,$$2}' $< >$@
 
-%.sort.ab.bam: %.bam
-	$(SVDETECT_BAMPROCESSING) $<
+# for the sake of clean working directories, rename original filename to sample.bam in svdetect workdir
 
-%.
-	$(SVDETECT) linking filtering -conf ler.sv.conf 
+%.svdetect/.workdir: %.sam
+	mkdir -p $(dir $@); touch $@;
 
-%.svdetect.vcf: %.all.links.filtered.sv.txt
-	$(SVDETECT2VCF) %< %@ BWA
+# this will process the incoming bam, extract statistics (mu, signma)
+# reuse these stats for config file generation !!!
+%.svdetect/sample.bam: %.sam %.svdetect/.workdir
+	$(SAMTOOLS) view -bS -o $@ -@ $(THREADS) $< 
+
+%.svdetect/sample.ab.bam: %.svdetect/sample.bam %.svdetect/.workdir
+	$(SVDETECT_BAMPROCESSING) -o $(dir $@) $< > $(addsuffix stats.txt, $(dir $@) ) 2>&1
+%.svdetect/stats.txt:
+	@
+
+%.svdetect/sample.sv.conf: %.svdetect/stats.txt %.svdetect.fai %.svdetect/sample.ab.bam
+	$(CREATE_CONFIG) -s $< -o $@ -r $(word 2, $^) -b $(word 3, $^) -t $(THREADS) -d $(dir $@)/results -e $(dir $@)/tmp
+
+%.svdetect/results/sample.ab.bam.all.links.filtered: %.svdetect/sample.ab.bam %.svdetect/sample.sv.conf
+	export PERL5LIB=$(SVDETECT_LIB_DIR):$$PERL5LIB;$(SVDETECT) linking filtering -conf $(lastword $^)
+
+%.svdetect/results/sample.ab.bam.all.links.filtered.sv.txt: %.svdetect/results/sample.ab.bam.all.links.filtered %.svdetect/sample.sv.conf
+	export PERL5LIB=$(SVDETECT_LIB_DIR):$$PERL5LIB;$(SVDETECT) links2SV -conf $(lastword $^)
+
+%.svdetect.vcf: %.svdetect/results/sample.ab.bam.all.links.filtered.sv.txt $(REFERENCE)
+	$(SVDETECT2VCF) -f $< -r $(lastword $^) > $@

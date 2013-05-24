@@ -74,7 +74,7 @@ clean:
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := gasv delly bd prism pindel
+SV_PROGRAMS := gasv delly bd prism pindel clever svdetect
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 
@@ -112,9 +112,9 @@ test:
 	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
 
 
-#######################
-## Call the SV files ##
-#######################
+##############################
+## Call the SV applications ##
+##############################
 
 %.bd.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile REFERENCE=$(REFERENCE) $@
@@ -130,6 +130,12 @@ test:
 
 %.gasv.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/gasv/makefile REFERENCE=$(REFERENCE) $@
+
+%.clever.vcf: %.bam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/clever/Makefile REFERENCE=$(REFERENCE) IN=$< $@
+
+%.svdetect.vcf: %.bam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/svdetect/makefile REFERENCE=$(REFERENCE) IN=$< $@
 
 
 

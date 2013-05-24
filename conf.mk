@@ -28,6 +28,10 @@ PROGRAMS_DIR := $(PROGRAMS)
 # BWA. 
 BWA = $(BWA_DIR)/bwa
 
+# BOWTIE2. 
+BOWTIE2_DIR := $(PROGRAMS)/bowtie2-2.1.0
+BOWTIE2 = $(BOWTIE2_DIR)/bowtie2
+
 # Dependencies
 BWA_DIR := $(PROGRAMS)/bwa-0.7.4
 BWA_THREADS = 4
@@ -64,6 +68,7 @@ SAMTOOLS = $(SAMTOOLS_DIR)/samtools
 # References
 REFERENCE_DIR = $(MAKEFILE_DIR)/reference
 REFERENCE_BWA = $(REFERENCE_DIR)/bwa/reference.fa
+REFERENCE_BOWTIE2 = $(REFERENCE_DIR)/bowtie2/reference
 REFERENCE := $(REFERENCE_DIR)/reference.fa
 
 ##########################
