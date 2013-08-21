@@ -30,11 +30,11 @@ BWA = $(BWA_DIR)/bwa
 
 # BOWTIE2. 
 BOWTIE2_DIR := $(PROGRAMS)/bowtie2-2.1.0
-BOWTIE2 = $(BOWTIE2_DIR)/bowtie2
+BOWTIE2 := $(BOWTIE2_DIR)/bowtie2
 
 # Dependencies
 BWA_DIR := $(PROGRAMS)/bwa-0.7.4
-BWA_THREADS = 4
+BWA_THREADS := 4
 BWA_MAX_INSERT_SIZE := 500 #[500]
 
 #BWA Options
@@ -42,10 +42,6 @@ BWA_OPTION_THREADS := 4
 
 BWA_ALN_OPTIONS := -t $(BWA_OPTION_THREADS)
 BWA_SAMPE_OPTIONS := -n25 -N25
-
-# Samtools.
-SAMTOOLS = $(SAMTOOLS_DIR)/samtools
-SAMTOOLS_DIR = /usr/bin
 
 # FastQC 
 FASTQC_DIR := $(PROGRAMS)/FastQC
@@ -57,8 +53,8 @@ SICKLE_DIR := $(PROGRAMS)/sickle-master
 SICKLE := $(SICKLE_DIR)/sickle
 
 # Samtools.
-SAMTOOLS_DIR = /usr/local/samtools/samtools-0.1.18
-SAMTOOLS = $(SAMTOOLS_DIR)/samtools
+SAMTOOLS_DIR := $(PROGRAMS)/samtools-0.1.18
+SAMTOOLS := $(SAMTOOLS_DIR)/samtools
 
 
 ####################
