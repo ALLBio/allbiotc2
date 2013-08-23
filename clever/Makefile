@@ -27,7 +27,7 @@ include $(MAKEFILE_DIR)/../conf.mk
 
 # clever-sv
 CLEVER_DIR := $(PROGRAMS_DIR)/clever-sv/bin
-CLEVER := $(CLEVER_DIR)/clever-all-in-one
+CLEVER := $(CLEVER_DIR)/clever
 
 
 ###############

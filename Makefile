@@ -20,13 +20,14 @@
 # The pipeline will take care of the different aligners/folders
 
 
-
-
 # Load all module definition
 # Makefile specific settings
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
 include $(MAKEFILE_DIR)/modules.mk
 include $(MAKEFILE_DIR)/conf.mk
+export MAKEFILE_DIR THIS_MAKEFILE
 
 #######################
 ### General Targets ###

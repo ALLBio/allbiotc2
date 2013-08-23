@@ -53,7 +53,7 @@ SICKLE_DIR := $(PROGRAMS)/sickle-master
 SICKLE := $(SICKLE_DIR)/sickle
 
 # Samtools.
-SAMTOOLS_DIR := $(PROGRAMS)/samtools-0.1.18
+SAMTOOLS_DIR := $(PROGRAMS)/samtools-0.1.19
 SAMTOOLS := $(SAMTOOLS_DIR)/samtools
 
 
