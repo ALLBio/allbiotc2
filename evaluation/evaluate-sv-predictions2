@@ -22,6 +22,7 @@ from __future__ import print_function, division
 from optparse import OptionParser, OptionGroup
 import sys
 import os
+import re
 from bitarray import bitarray
 from collections import defaultdict
 import math
@@ -168,6 +169,9 @@ class ToolStatistics:
 		self.deletion_f = nonemax(self.deletion_f, results.deletion_f)
 
 class VariationList:
+	"""
+		Essentially we read in a VCF. Support for versions upto 4.1
+	"""
 	def __init__(self,filename,istrio=False):
 
 		self.variations = defaultdict(list)
@@ -185,11 +189,43 @@ class VariationList:
 					if (not header_dict.has_key('mother')) or (not header_dict.has_key('father')) or (not header_dict.has_key('child')):
 						print('Expecting sample names "mother", "father", and "child" when in trio mode.', file=sys.stderr)
 						sys.exit(1)
+
 			fields = line.split()
 			ref = fields[3]
 			alt = fields[4]
+			
+			info_fields = dict(s.split('=') for s in fields[7].strip(';').split(';') if '=' in s)
+
+
+			event_types = {
+				'tandem': "DUP:TANDEM",
+				'del': "DEL",
+				'invers': "INV",
+				'del_ins': "INS", # deletion with insertion at breakpoint 
+				'transl': "TRANS", # not official spec, not used in this script
+			}
+			if self.probeVCFversion( line ) >= (4,1,0):
+				# map some fields from 4.1 spec to 4.0
+				if info_fields['SVTYPE'] == 'BND':
+					event_type = info_fields['EVENT'].split("_")[0].lower() # e.g. del_5468 > DEL
+					# special case #(del_ins)
+					# if the event is not known (yet), set unknown
+					event = event_types.get( event_type, "unk" )
+					info_fields['SVTYPE'] = event
+					
+					# alter the chrB, populate with information from ALT
+					# format: [chrB:posB[
+#					print(re.findall(r'([\w\d]+)\:([\d]+)', alt, re.I | re.M))
+					chrB, posB = re.findall(r'([\w\d]+)\:([\d]+)', alt, re.I | re.M)[0]
+					
+				if info_fields['SVTYPE'] in ['DEL', 'INS']:
+					sv_coords = [int(fields[1]), int(posB)]
+					sv_coords.sort()
+					svlen = sv_coords[1] - sv_coords[0]
+					info_fields['SVLEN'] = svlen
+				alt = '.'
+				ref = '.'
 			if (alt == '.') or (ref == '.'):
-				info_fields = dict(s.split('=') for s in fields[7].strip(';').split(';') if '=' in s)
 				if not 'SVTYPE' in info_fields: continue
 				if not 'SVLEN' in info_fields: continue
 				if info_fields['SVTYPE'] == 'DEL':
@@ -242,6 +278,17 @@ class VariationList:
 				if genotype == '000': continue
 #				typing = alltypedict[genotype]
 			self.variations[chromosome].append((coord1, coord2, vartype, genotype))
+
+	def probeVCFversion(self, line):
+		# Detect VCF version, do not rely on header since this could be a faulty template.
+		fields = line.split('\t')
+		alt = fields[4]
+		# the 4.1+ versions contain []-brackets in the ALT field to denote the breakpoint mates
+		if re.findall(r'(\[|\])+', alt, re.I | re.M ):
+			# This is version 4.1+
+			return (4,1,0)
+		else:
+			return (4,0,0)
 
 	def get(self, chromosome, index):
 		"""Returns coordinates (coord1, coord2, var_type) for the variation with given index."""
