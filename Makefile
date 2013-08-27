@@ -55,10 +55,10 @@ $(OUT_DIR):
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
 %.bam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
 %.bam.bai: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
 %.flagstat: %.bam
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@

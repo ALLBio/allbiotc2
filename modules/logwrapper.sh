@@ -37,7 +37,6 @@ then
     eval "$run_cmd"
     exitcode=$?
 else
-    echo "DEBUG $jobrunid: $run_cmd" >> .log/master.log
     run_cmd=$(echo $run_cmd | sed -e 's/\"/\\"/g' )
     { { /usr/bin/time -v -o .log/$jobrunid.stat.log -- sh -c "$run_cmd" | tee .log/$jobrunid.stdout.log >&3; exit ${PIPESTATUS[0]}; } 2>&1 | tee .log/$jobrunid.stderr.log >&2; } 3>&1
     # exitcode is on the last line of the .log/stat.log
