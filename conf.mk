@@ -95,6 +95,9 @@ ROOT_OUT_DIR := $(IN_DIR)
 # real output directory
 OUT_DIR := $(ROOT_OUT_DIR)
 
+# reference VCF used in this project
+REFERENCE_VCF :=
+
 
 
 

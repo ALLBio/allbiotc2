@@ -30,10 +30,16 @@ include $(MAKEFILE_DIR)/conf.mk
 export MAKEFILE_DIR THIS_MAKEFILE
 
 #######################
+#### Basic checking ###
+#######################
+
+$(if $(REFERENCE_VCF),,$(error REFERENCE_VCF is a required value))
+
+#######################
 ### General Targets ###
 #######################
 
-all: fastqc alignment aligmentstats sv_vcf
+all: fastqc alignment aligmentstats sv_vcf report
 
 qc: $(addsuffix .fastqc, $(SINGLES))
 BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
@@ -50,6 +56,10 @@ $(OUT_DIR):
 # filename = test_bla
 # $(SAMPLE) = test
 # prerequist = test.1.trimmed.fastq
+
+#################
+### Alignment ###
+#################
 
 %.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
@@ -82,6 +92,7 @@ sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 # Partial recipies
 FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
+report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)))
 
 
 .PHONY: test
@@ -142,10 +153,15 @@ test:
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/svdetect/makefile REFERENCE=$(REFERENCE) IN=$< $@
 
 
+##############################
+## Create comparison report ##
+##############################
 
+%.report.tex: $(VCF_OUTPUTS)
+    $(EVALUATE_PREDICTIONS) -L $(REFERENCE_VCF) $^ > comparison.tex
 
-
-
+%.report.pdf: %.report.tex
+    pdflatex $^ && pdflatex $^
 
 
 
