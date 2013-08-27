@@ -4,11 +4,11 @@ include $(MAKEFILE_DIR)/../../conf.mk
 
 # The target is .bam, we expect input: .fastq
 
-#%.sam: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
-#	SGE_RREQ="-pe $(SGE_PE) $(THREADS)" $(BWA) mem -t $(THREADS) $(REFERENCE_BWA) $^ > $@
-
-%.sam: $(IN)
+%.sam: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	SGE_RREQ="-pe $(SGE_PE) $(THREADS)" $(BWA) mem -t $(THREADS) $(REFERENCE_BWA) $^ > $@
+
+#%.sam: $(IN)
+#	SGE_RREQ="-pe $(SGE_PE) $(THREADS)" $(BWA) mem -t $(THREADS) $(REFERENCE_BWA) $^ > $@
 
 %.unsort.bam: %.sam
 	$(SAMTOOLS) view -bST $(REFERENCE) -o $@ $<
