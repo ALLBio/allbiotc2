@@ -7,18 +7,7 @@
 # Adapted makefile configuration from Wibowo Arindrarto [SASC-LUMC]
 # 
 # This pipeline is able to run with multiple aligners (aligner modules)
-#
-# Directory structure:
-# - input
-# - scripts
-# - run
-#   |
-#   - bwa-aln
-#   - bwa-mem
-#   - bt2
-# 
-# The pipeline will take care of the different aligners/folders
-
+# Settings can be found in the conf.mk in this directory
 
 # Load all module definition
 # Makefile specific settings
@@ -32,8 +21,19 @@ export MAKEFILE_DIR THIS_MAKEFILE
 #######################
 #### Basic checking ###
 #######################
+.PHONY: help
 
+help:
+	echo ALLBio pipeline
+
+# only check the variable in non-install goals
+ifneq ($(MAKECMDGOALS),install)
 $(if $(REFERENCE_VCF),,$(error REFERENCE_VCF is a required value))
+endif
+ifeq ($(MAKECMDGOALS),preprocess)
+$(if $(SDI_FILE),,$(error SDI_FILE is a required value))
+endif
+
 
 #######################
 ### General Targets ###
@@ -46,16 +46,14 @@ BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffi
 alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
 aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
-# creates the output directory
-$(OUT_DIR):
-	mkdir -p $@
+##############################
+### Generate reference VCF ###
+##############################
 
-%.fastqc: %.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/fastqc.mk $@
+preprocess: $(REFERENCE_VCF)
 
-# filename = test_bla
-# $(SAMPLE) = test
-# prerequist = test.1.trimmed.fastq
+$(REFERENCE_VCF): $(SDI_FILE)
+	python $(MAKEFILE_DIR)/sdi-to-vcf/sdi-to-vcf.py -p $^ $(REFERENCE) > $@
 
 #################
 ### Alignment ###
@@ -112,6 +110,13 @@ test:
 ### Rules and Recipes ###
 #########################
 
+# creates the output directory
+$(OUT_DIR):
+	mkdir -p $@
+
+%.fastqc: %.$(FASTQ_EXTENSION)
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/fastqc.mk $@
+
 # FastQC for quality control
 %.raw_fastqc: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
@@ -158,10 +163,21 @@ test:
 ##############################
 
 %.report.tex: $(VCF_OUTPUTS)
-    $(EVALUATE_PREDICTIONS) -L $(REFERENCE_VCF) $^ > comparison.tex
+	$(EVALUATE_PREDICTIONS) -L $(REFERENCE_VCF) $^ > comparison.tex
 
 %.report.pdf: %.report.tex
-    pdflatex $^ && pdflatex $^
+	pdflatex $^ && pdflatex $^
+
+
+####################################
+### Install software requirement ###
+####################################
+.PHONY: install
+
+.SILENT:
+install:
+	echo Install python packages for the pipeline
+	sudo apt-get install python-biopython
 
 
 
