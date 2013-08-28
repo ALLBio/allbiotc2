@@ -1,2 +1,0 @@
-wget http://mus.well.ox.ac.uk/19genomes/variants.SDI/ler_0.v7c.sdi
-./sdi-to-vcf.py -p ler_0.v7c.sdi tair9.fasta > ler_0.v7c.vcf
