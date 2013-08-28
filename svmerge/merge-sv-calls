@@ -1,0 +1,983 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2012 Tobias Marschall
+# 
+# This file is part of CLEVER.
+# 
+# CLEVER is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CLEVER is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with CLEVER.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import print_function, division
+from optparse import OptionParser, OptionGroup
+import sys
+import os
+from bitarray import bitarray
+from copy import deepcopy
+from collections import defaultdict
+import math
+
+__author__ = "Alexander Schoenhuth"
+
+usage = """%prog [options] <vcf0> <vcf1> [<vcf2>...<vcfN>] > <merge-vcf>
+
+Reads vcf files with deletion calls and writes a vcf with merged calls.
+The order in which the vcf's are input matters. If calls from <vcfi>
+and <vcfj> are merged, and i<j, the call from <vcfi> is retained
+as merged call.
+
+The INFO field of <merge-vcf> is structured as follows:
+
+TOOLS is followded by a list of tools (or only one tool), from which
+the call stems. The call stems from the first tool in this list, as
+per the order specified.
+
+MAXDIST is the maximum distance between breakpoint centerpoints encountered
+among all calls merged.
+
+MAXLENDIFF is the maximum difference in length encountered among all lengths
+predicted by the tools.
+"""
+
+def nan_div(a,b):
+	"""Division that yields nan when dividing by zero."""
+	try:
+		return a / b
+	except ZeroDivisionError:
+		return float('nan')
+
+allowed_dna_chars = set(['A','C','G','T','N','a','c','g','t','n'])
+
+def valid_dna_string(s):
+	chars = set(c for c in s)
+	return chars.issubset(allowed_dna_chars)
+
+def compute_delpairs(callsets, chromosomes, chromosome_lengths, offset=50, difflength=50, tag=None):
+
+	"""
+	"""
+	
+	min_length = None
+	max_length = None
+	# min_ and max_length make no sense here
+        
+        count_stats = []
+        for callset in callsets:
+            count_stats.append(compute_count_stats(callset, chromosome_lengths, 0, 'DEL'))
+
+	pair_stats = {}
+	
+	K1, K2 = 0, 0
+	for chromosome in (x.lower() for x in chromosomes):
+		pair_stats[chromosome] = []
+		overlaps = variants1.find_all_deletion_centerpoint_hits(variants2, chromosome, min_length, max_length, offset, difflength, tag)
+		
+		for i, (start0, end0, var_type0, tags0) in enumerate(variants1.variations[chromosome]):
+			if var_type0 != 'DEL': continue
+			if (tag!=None) and (not tag in tags0): continue
+			length0 = end0 - start0
+			centerpoint0 = (start0 + end0)/2
+			for j in overlaps[i]:
+				K1, K2 = 0, 0
+				start1, end1, var_type1, tags1 = variants2.variations[chromosome][j]
+				length1 = end1 - start1
+				centerpoint1 = (start1 + end1)/2
+				if abs(length1-length0) > difflength:
+					continue
+				for k in range(min(length0,length1), max(length0,length1)+1):
+#					print(chromosome, k, count_stats1[chromosome][k], count_stats2[chromosome][k], file=sys.stderr)
+					if len(count_stats1[chromosome][k]) == 2:
+						K1 += count_stats1[chromosome][k][0]
+					if len(count_stats2[chromosome][k]) == 2:
+						K2 += count_stats2[chromosome][k][0]
+				significance = 1.0 - math.exp(-float(K1*K2*(abs(centerpoint1-centerpoint0)+1))/chromosome_lengths[chromosome])
+				#significance = 1.0 - (1.0-((abs(centerpoint1-centerpoint0)+1)/chromosome_lengths[chromosome]))**(K1*K2)
+
+				pair_stats[chromosome].append((i,j,start0,start1,end0,end1,significance))
+	
+	return pair_stats
+			       
+
+class VariationList:
+
+	def __init__(self, filename=None, index=None):
+
+		self.variations = defaultdict(list)
+		self.var_type = None
+		
+		n = 0
+
+		for fields in (s.strip().split() for s in file(filename)):
+
+			n += 1
+
+			if (not 4 <= len(fields) <= 5) or (not fields[3] in ['INS','DEL']):
+				print('Error parsing file "%s". Offending line: %d'%(filename,n), file=sys.stderr)
+				sys.exit(1)
+			if (fields[1] == 'n/a') or (fields[2] == 'n/a'):
+				continue
+
+			chromosome, start, end, var_type = fields[0].lower(), int(fields[1]), int(fields[2]), fields[3]
+			if not chromosome.startswith('chr'):
+				chromosome = 'chr' + chromosome
+			
+			if len(fields) == 5:
+				tags = fields[4]
+			else:
+				tags = ''
+			# if information present, then add tag given in field 4
+			#if len(fields) == 5:
+			#	tags.append(fields[4])
+
+			# convert from 1-based, inclusive coordinates to pythonic coordinates
+			self.variations[chromosome].append((start-1, end, var_type, tags, index))
+
+
+	def compute_count_stats(self, chromosome_lengths, var_type, delta=0):
+		
+		"""self.count_stats[chromosome][i][0] is the number of
+		breakpoints in chromosome referring to an indel of
+		length i.
+		
+		self.count_stats[chromosome][i][1] is the percentage
+		of nucleotides in chromosome which correspond to
+		breakpoints of indels of length in
+		[i-delta,i+delta]. For delta = 0 this is just the
+		percentage of nucleotides corresponding to breakpoints
+		of indels of length i.
+		"""
+
+		if delta == None: delta = 0
+		
+		self.count_stats = {}
+
+		for chromosome in chromosome_lengths.keys():
+			
+			chromosome = chromosome.lower()
+
+			self.count_stats[chromosome] = defaultdict(list)
+			
+			for variant in self.variations[chromosome]:
+				
+				if var_type == 'DEL':
+					length = variant[1] - variant[0]
+				if var_type == 'INS':
+					length = variant[1]
+
+				for i in range(max(0,length - delta), length + delta + 1):
+					if len(self.count_stats[chromosome][i]) == 2:
+						self.count_stats[chromosome][i][0] += 1
+						self.count_stats[chromosome][i][1] += 1.0/chromosome_lengths[chromosome]
+					else:
+						self.count_stats[chromosome][i] = [1, 1.0/chromosome_lengths[chromosome]]
+
+
+	def add_calls(self, other):
+
+		if self.var_type != other.var_type:
+			print('Warning: trying to join calls of different type', file=sys.stderr)
+
+		for chromosome in other.variations.keys():
+			
+			if chromosome not in self.variations.keys():
+				self.variations[chromosome] = other.variations[chromosome]
+				self.variations[chromosome].sort()
+
+			else:
+				for deletion in other.variations[chromosome]:
+					self.variations[chromosome].append(deletion)
+				self.variations[chromosome].sort()
+
+
+	def write_spaced(self, tool_names, filename=None):
+
+		if filename:
+			outfile = open(filename, 'w')
+		else:
+			outfile = sys.stdout
+
+		for chromosome in self.variations.keys():
+			for variation in self.variations[chromosome]:
+				var_type = self.var_type
+				start, end, ref, alt, deletionstring, maxdist, maxlendiff, genotype, info, indices = variation[0]+1, variation[1], variation[2], variation[3], variation[4], variation[5], variation[6], variation[7], variation[8], variation[9]
+				outstring = '%s %d %d %s %s %s' % (chromosome, start, end, ref, alt, self.var_type)
+				if type(indices) == type(1):
+					indices = [indices]
+#				if len(variation) >= 3:
+#					tags = variation[2]
+					#tagstring = ''
+					#for tag in tags:
+					#	tagstring += '%s,' % (tag)
+					#outstring += ' %s' % (tagstring)
+#					outstring += tags
+#				if len(variation) >= 4:
+#				indices = str(variation[-1]).split(',')
+				toolstring = ''
+				for ind in indices:
+					#print(ind, tool_names)
+					if ind == '':
+						continue
+					toolstring += "%s," % (tool_names[int(ind)])
+				
+				for index in indices:
+					outstring += '%d,' % (index)
+				outstring += toolstring + ' '
+				outstring += ' %s ' % (deletionstring)
+				outstring += ' %d' % (maxdist)
+				outstring += ' %d' % (maxlendiff)
+
+				print(outstring, file=outfile)
+
+	def write_vcf(self, tool_names, filename=None):
+		
+		if filename:
+			outfile = open(filename, 'w')
+		else:
+			outfile = sys.stdout
+		
+		headerline = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"
+		print(headerline, file=outfile)
+
+		for chromosome in self.variations.keys():
+			for variation in self.variations[chromosome]:
+				
+				chrom = chromosome[3:]
+				var_type = self.var_type
+				start, end = variation[0], variation[1]
+				ref, alt = variation[2], variation[3]
+				deletionstring = variation[4]
+				maxdist, maxlendiff = variation[5], variation[6]
+				genotype, info, indices = variation[7], variation[8], variation[9] 
+
+				toolstring = ""
+				if type(indices) == type(1):
+					indices = [indices]
+				for index in indices:
+					toolstring += "%s," % (tool_names[index])
+				infostring = "SVTYPE=%s:TOOLS=%s:MAXDIST=%d:MAXLENDIFF=%d" % (var_type, toolstring, maxdist, maxlendiff)
+				vcfline = "%s\t%d\t.\t%s\t%s\t.\tPASS\t%s" % (chrom, start, ref, alt, infostring)
+				print(vcfline, file=outfile)
+
+def VariationList_from_dict(vardict, var_type=None):
+	
+	if var_type == None:
+		newvarlist = VariationList()
+	elif var_type == 'DEL':
+		newvarlist = DeletionList()
+	elif var_type == 'INS':
+		newvarlist = InsertionList()
+
+	for chromosome in vardict.keys():
+		newvarlist.variations[chromosome] = vardict[chromosome]
+
+	return newvarlist
+
+
+class DeletionList(VariationList):
+
+	def __init__(self, filename=None, index=None, istrio=False):
+
+		self.variations = defaultdict(list)
+		self.var_type = 'DEL'
+		
+		if filename == None:
+			return
+
+		n = 0
+		header = None
+		header_dict = None
+		for line in (s.strip() for s in file(filename)):
+			n += 1
+			if line.startswith('##'): continue
+			if line.startswith('#'):
+				header = line[1:].split()
+				header_dict = dict((name.lower(),index) for index,name in enumerate(header))
+				if istrio:
+					if (not header_dict.has_key('mother')) or (not header_dict.has_key('father')) or (not header_dict.has_key('child')):
+						print('Expecting sample names "mother", "father", and "child" when in trio mode.', file=sys.stderr)
+						sys.exit(1)
+			fields = line.split()
+			ref = fields[3]
+			alt = fields[4]
+			info = fields[7]
+			if (alt == '.') and (ref == '.'):
+				info_fields = dict(s.split('=') for s in info.split(';'))
+				if not 'SVTYPE' in info_fields: continue
+				if not 'SVLEN' in info_fields: continue
+				if info_fields['SVTYPE'] == 'DEL':
+					vartype = 'DEL'
+					svlen = abs(int(info_fields['SVLEN']))
+					coord1 = int(fields[1]) - 1
+					coord2 = coord1 + svlen
+				elif info_fields['SVTYPE'] == 'INS':
+					vartype = 'INS'
+					svlen = abs(int(info_fields['SVLEN']))
+					coord1 = int(fields[1]) - 1
+					coord2 = svlen
+			else:
+				if (not valid_dna_string(ref)) or (not valid_dna_string(alt)):
+					continue
+				if (len(ref) > 1) and (len(alt) == 1):
+					vartype = 'DEL'
+					svlen = len(ref) - 1
+					coord1 = int(fields[1])
+					coord2 = coord1 + svlen
+				elif (len(ref) == 1) and (len(alt) > 1):
+					vartype = 'INS'
+					svlen = len(alt) - 1
+					coord1 = int(fields[1])
+					coord2 = svlen
+				else:
+					continue
+			if not fields[0][:3] == 'chr':
+				chromosome = 'chr' + fields[0]
+			else:
+				chromosome = fields[0].lower()
+			genotype = None
+			if istrio: 
+				# if vcf relates to a trio, determine
+				# the genotypes of the call/annotation
+				format_dict = dict((name,i) for i, name in enumerate(fields[8].split(':')))
+				family = [
+					fields[header_dict['mother']].split(':')[format_dict['GT']],
+					fields[header_dict['father']].split(':')[format_dict['GT']],
+					fields[header_dict['child']].split(':')[format_dict['GT']]
+				]
+				genotype = ''
+				for member in family:
+					if member in ['1/1', '1|1']:
+						genotype += '2'
+					elif member in ['1/.', '1/0', '1|0', '1|.', '0|1', '.|1', '0/1', './1']:
+						genotype += '1'
+					else:
+						genotype += '0'
+				if genotype == '000': continue
+#				typing = alltypedict[genotype]
+			deletionstring = "%d:%d:%d" % (coord1,coord2,index)
+			maxdist, maxlendiff = 0, 0
+			self.variations[chromosome].append((coord1, coord2, ref, alt, deletionstring, maxdist, maxlendiff, genotype, info, index))
+
+	
+#	def __init__(self, filename=None, index=None):
+#
+#		self.variations = defaultdict(list)
+#		self.var_type = 'DEL'
+#		
+#		if filename == None:
+#			return
+#
+#		n = 0
+#
+#		for fields in (s.strip().split() for s in file(filename)):
+#
+#			n += 1
+#
+#			if (not 4 <= len(fields) <= 5) or (not fields[3] in ['INS','DEL']):
+#				print('Error parsing file "%s". Offending line: %d'%(filename,n), file=sys.stderr)
+#				sys.exit(1)
+#			if (fields[1] == 'n/a') or (fields[2] == 'n/a') or (fields[3] != 'DEL'):
+#				continue
+#
+#			chromosome, start, end = fields[0].lower(), int(fields[1]), int(fields[2])
+#			if not chromosome.startswith('chr'):
+#				chromosome = 'chr' + chromosome
+#
+#			if len(fields) == 5:
+#				tags = fields[4]
+#			else:
+#				tags = ''
+#			# if information present, then add tag given in field 4
+#			#if len(fields) == 5:
+#			#	tags.append(fields[4])
+#
+#			# convert from 1-based, inclusive coordinates to pythonic coordinates
+#			self.variations[chromosome].append((start-1, end, tags, index))
+#	
+
+	def add_deletions_from_vcf(self, filename, index=None, istrio=False):
+		
+		more_deletions = defaultdict(list)
+
+		n = 0
+		header = None
+		header_dict = None
+		for line in (s.strip() for s in file(filename)):
+			n += 1
+			if line.startswith('##'): continue
+			if line.startswith('#'):
+				header = line[1:].split()
+				header_dict = dict((name.lower(),index) for index,name in enumerate(header))
+				if istrio:
+					if (not header_dict.has_key('mother')) or (not header_dict.has_key('father')) or (not header_dict.has_key('child')):
+						print('Expecting sample names "mother", "father", and "child" when in trio mode.', file=sys.stderr)
+						sys.exit(1)
+			fields = line.split()
+			ref = fields[3]
+			alt = fields[4]
+			if (alt == '.') and (ref == '.'):
+				info_fields = dict(s.split('=') for s in fields[7].split(';'))
+				if not 'SVTYPE' in info_fields: continue
+				if not 'SVLEN' in info_fields: continue
+				if info_fields['SVTYPE'] == 'DEL':
+					vartype = 'DEL'
+					svlen = abs(int(info_fields['SVLEN']))
+					coord1 = int(fields[1]) - 1
+					coord2 = coord1 + svlen
+				elif info_fields['SVTYPE'] == 'INS':
+					vartype = 'INS'
+					svlen = abs(int(info_fields['SVLEN']))
+					coord1 = int(fields[1]) - 1
+					coord2 = svlen
+			else:
+				if (not valid_dna_string(ref)) or (not valid_dna_string(alt)):
+					continue
+				if (len(ref) > 1) and (len(alt) == 1):
+					vartype = 'DEL'
+					svlen = len(ref) - 1
+					coord1 = int(fields[1])
+					coord2 = coord1 + svlen
+				elif (len(ref) == 1) and (len(alt) > 1):
+					vartype = 'INS'
+					svlen = len(alt) - 1
+					coord1 = int(fields[1])
+					coord2 = svlen
+				else:
+					continue
+			if not fields[0][:3] == 'chr':
+				chromosome = 'chr' + fields[0]
+			else:
+				chromosome = fields[0].lower()
+			genotype = None
+			if istrio: 
+				# if vcf relates to a trio, determine
+				# the genotypes of the call/annotation
+				format_dict = dict((name,i) for i, name in enumerate(fields[8].split(':')))
+				family = [
+					fields[header_dict['mother']].split(':')[format_dict['GT']],
+					fields[header_dict['father']].split(':')[format_dict['GT']],
+					fields[header_dict['child']].split(':')[format_dict['GT']]
+				]
+				genotype = ''
+				for member in family:
+					if member in ['1/1', '1|1']:
+						genotype += '2'
+					elif member in ['1/.', '1/0', '1|0', '1|.', '0|1', '.|1', '0/1', './1']:
+						genotype += '1'
+					else:
+						genotype += '0'
+				if genotype == '000': continue
+#				typing = alltypedict[genotype]
+			more_deletions[chromosome].append((coord1, coord2, vartype, genotype, index))
+
+		for chromosome in more_deletions.keys():
+			
+			if chromosome in self.variations.keys():
+				self.variations[chromosome] += more_deletions[chromosome]
+				self.variations[chromosome].sort()
+			else:
+				self.variations[chromosome] = more_deletions[chromosome]
+				self.variations[chromosome].sort()
+
+#			self.variations[chromosome].append((coord1, coord2, vartype, genotype))
+
+
+#	def add_deletions_from_file(self, filename, index=None):
+#
+#		more_deletions = defaultdict(list)
+#
+#		n = 0
+#		
+#		for fields in (s.strip().split() for s in file(filename)):
+#
+#			n += 1
+#			
+#			if (not 4 <= len(fields) <= 5) or (not fields[3] in ['INS','DEL']):
+#				print('Error parsing file "%s". Offending line: %d'%(filename,n), file=sys.stderr)
+#				sys.exit(1)
+#			if (fields[1] == 'n/a') or (fields[2] == 'n/a') or (fields[3] != 'DEL'):
+#				continue
+#
+#			chromosome, start, end = fields[0].lower(), int(fields[1]), int(fields[2])
+#			if not chromosome.startswith('chr'):
+#				chromosome = 'chr' + chromosome
+#
+#			tags = fields[4]
+#			# if information present, then add tag given in field 4
+#			#if len(fields) == 5:
+#			#	tags.append(fields[4])
+#
+#			# convert from 1-based, inclusive coordinates to pythonic coordinates
+#			more_deletions[chromosome].append((start-1, end, tags, index))
+#
+#		for chromosome in more_deletions.keys():
+#			
+#			if chromosome in self.variations.keys():
+#				self.variations[chromosome] += more_deletions[chromosome]
+#				self.variations[chromosome].sort()
+#			else:
+#				self.variations[chromosome] = more_deletions[chromosome]
+#				self.variations[chromosome].sort()
+#
+
+#	def compute_count_stats(self, chromosome_lengths, delta=0):
+#		
+#		VariationList.compute_count_stats(self, chromosome_lengths, 'DEL', delta)
+		
+
+	def merge(self, mode='fixed_distance', offset=50, lendiff=20, overlap_ratio=0.5):
+
+		if mode not in ['fixed_distance', 'overlap', 'significant']:
+			print("Passed wrong argument to mode. Allowed are 'fixed_distance', 'overlap' or 'significant'", file=sys.stderr)
+			sys.exit(1)
+
+		merged_deletions = defaultdict(list)
+#		strangeguys = defaultdict(list)
+
+		mergelog = open("merge.log", 'w')
+
+		def merge_deletions_in_clique(clique):
+			maxdist = 0
+			maxlendiff = 0
+			start, end = 0, 0
+			tags = ''
+			indices = []
+			startingpoints = []
+			endpoints = []
+			distances = []
+			lengths = []
+			lendiffs = []
+			indexcoordinates = []
+			deletionstring = ''
+			bestorder = -1
+			ref, alt = '.', '.'
+			for deletion in clique:
+				order = int(deletion[-1])
+				if order < bestorder or bestorder == -1:
+					bestorder = order
+					start, end, ref, alt, genotype, info = deletion[0], deletion[1], deletion[2], deletion[3], deletion[7], deletion[8]
+				for startingpoint in startingpoints:
+					distances.append(abs(deletion[0]-startingpoint))
+				for endpoint in endpoints:
+					distances.append(abs(deletion[1]-endpoint))
+				startingpoints.append(deletion[0])
+				endpoints.append(deletion[1])
+				for length in lengths:
+					lendiffs.append(abs((deletion[1]-deletion[0])-length))
+				lengths.append(deletion[1]-deletion[0])
+				indexcoordinates.append((deletion[0],deletion[1],int(deletion[-1])))
+				deletionstring += "%d:%d:%d," % (deletion[0],deletion[1],int(deletion[-1]))
+				tags += deletion[2]
+				if deletion[-1] not in indices:
+					indices.append(int(deletion[-1]))
+
+			# merged deletion: average of starting and end points
+#			start = sum(startingpoints)/len(startingpoints)
+#			end = sum(endpoints)/len(endpoints)
+
+			# merged deletion: take coordinates of the
+			# 'highest ordered' deletion, as specified by
+			# the indices
+			# start, end, order = indexcoordinates[0][0], indexcoordinates[0][1], indexcoordinates[0][2]
+			# for combi in indexcoordinates[1:]:
+			#	if combi[2] < order:
+			#		start, end, order = combi[0], combi[1], combi[2]
+					
+			
+			if len(distances) > 0:
+				maxdist = max(distances)
+			if len(lendiffs) > 0:
+				maxlendiff = max(lendiffs)
+				
+			
+#			for deletion in clique:
+#				
+#				start += deletion[0]
+#				end += deletion[1]
+#				tags += deletion[2]
+#				if deletion[-1] not in indices:
+#					indices.append(int(deletion[-1]))
+#			start /= len(clique)
+#			end /= len(clique)
+			
+			indices.sort()
+#			indexstring = ''
+#			for index in indices:
+#				indexstring += '%d,' % (index)
+			
+			
+			return (start, end, ref, alt, deletionstring, maxdist, maxlendiff, genotype, info, indices)
+
+		for chromosome in self.variations.keys():
+
+			active_cliques = []
+
+			# an element of active_cliques is [clique, coord] (needs to be mutable)
+			#
+			# where
+			#
+			# a clique is a set of lists [x1,x2] where
+			# x1 = centerpoint, x2 = length for fixed_distance
+			# x1 = start, x2 = end for overlap
+			#
+			# coord is the decisive coordinate to be checked for activity
+			# coord = rightmost centerpoint for mode == 'fixed_distance'
+			# coord = rightmost end coordinate for mode == 'overlap'
+
+			active_deletions = []
+			
+			for deletion in self.variations[chromosome]:
+				
+				start0, end0 = deletion[0], deletion[1]
+				centerpoint0 = (start0 + end0)/2
+				length0 = end0 - start0 + 1
+				index0 = deletion[-1]
+
+				print('Treating deletion %d %d from %d' % (start0, end0, index0), file=mergelog)
+				print('Active deletions:', active_deletions, file=mergelog)
+				print('Active cliques:', active_cliques, '\n', file=mergelog)
+
+				if len(active_cliques) >= 2:
+					print('%d active cliques!\n' % (len(active_cliques)), file=mergelog)
+				# first prune active_cliques and active_deletions:
+
+				# prune active_cliques
+				i = 0
+#				while i < len(active_cliques):
+#					if mode == 'overlap':
+#						if active_cliques[i][1] < start0:
+#							active_cliques.remove(active_cliques[i])
+#							continue
+#						i += 1
+#					if mode == 'fixed_distance':
+#						if active_cliques[i][1] < centerpoint0 - offset:
+#							active_cliques.remove(active_cliques[i])
+#							continue
+#						i += 1
+#					if mode == 'significant':
+#						pass
+				
+				# prune active_deletions and compute neighborhood
+				neighborhood = set()
+				i = 0
+				while i < len(active_deletions):
+					
+					start1, end1 = active_deletions[i][0], active_deletions[i][1]
+					centerpoint1 = (start1 + end1)/2
+					length1 = end1 - start1 + 1
+					index1 = active_deletions[i][-1]
+					
+					if mode == 'overlap':
+						if end1 < start0:
+							active_deletions.remove(active_deletions[i])
+							continue
+						overlap = max(0, min(end0,end1) - max(start0,start1))
+						if overlap >= overlap_ratio * max(length0, length1):
+							neighborhood.add(active_deletions[i])
+						i += 1
+					if mode == 'fixed_distance':
+						if centerpoint1 < centerpoint0 - offset:
+							active_deletions.remove(active_deletions[i])
+							continue
+						if abs(centerpoint0 - centerpoint1) <= offset and abs(length0 - length1) <= lendiff:
+							neighborhood.add(active_deletions[i])
+#						if 1 <= abs(length0-length1) <= 3 and index0 != index1:
+#							if index0 == 0:
+#								strangeguys[chromosome].append(deletion)
+#							else: # index1 = 0
+#								strangeguys[chromosome].append(active_deletions[i])
+						i += 1
+					if mode == 'significant':
+						pass
+				
+				# append deletion to active deletion after having computed the neighborhood
+				active_deletions.append(deletion)
+
+				# prune and update active_cliques:
+				
+				# flag for checking whether neighborhood has non-empty overlap with any of the active cliques:
+				intersect = False 
+				new_cliques = []
+				i = 0
+				while i < len(active_cliques):
+
+					if mode == 'overlap':
+
+						# prune active_clique if necessary
+						if active_cliques[i][1] < start0:
+							newdel = merge_deletions_in_clique(active_cliques[i][0])
+							merged_deletions[chromosome].append(newdel)
+							print('Pruning ', active_cliques[i][0], '\nnew, merged deletion:', newdel, '\n', file=mergelog)
+							active_cliques.remove(active_cliques[i])
+							continue
+
+						interclique = active_cliques[i][0].intersection(neighborhood)
+
+						# the active clique is contained in the neighborhood:
+						if interclique == active_cliques[i][0]:
+							intersect = True
+							active_cliques[i][0].add(deletion)
+							print('Contained, yielding  ', active_cliques[i][0], '\n', file=mergelog)
+							active_cliques[i][1] = max(active_cliques[i][1], end0)
+						
+						# the intersection of the active clique with the neighborhood is at least not empty
+						elif len(interclique) > 0:
+							intersect = True
+							interclique.add(deletion)
+							crit = max(x[1] for x in interclique) # x is a deletion, x[1] is the end point
+							new_cliques.append([interclique, crit])
+							print('Splitting, yielding  ', new_cliques[-1][0], '\n', file=mergelog)
+
+						i += 1
+
+					if mode == 'fixed_distance':
+
+						# prune if necessary
+						if active_cliques[i][1] < centerpoint0 - offset:
+							newdel = merge_deletions_in_clique(active_cliques[i][0])
+							merged_deletions[chromosome].append(newdel)
+							print('Pruning ', active_cliques[i][0], '\nnew, merged deletion:', newdel, '\n', file=mergelog)
+							active_cliques.remove(active_cliques[i])
+							continue
+
+						interclique = active_cliques[i][0].intersection(neighborhood)
+
+						# the active clique is contained in the neighborhood:
+						if interclique == active_cliques[i][0]:
+							intersect = True
+							active_cliques[i][0].add(deletion)
+							print('Contained, yielding  ', active_cliques[i][0], '\n', file=mergelog)
+							active_cliques[i][1] = max(active_cliques[i][1], end0)
+
+						# the intersection of the active clique with the neighborhood is at least not empty
+						elif len(interclique) > 0:
+							intersect = True
+							interclique.add(deletion)
+							crit = max((x[1]-x[0]+1)/2 for x in interclique) 
+							# x is a deletion, (x[1]-x[0]+1)/2 is the centerpoint
+							new_cliques.append([interclique, crit])
+							print('Splitting, yielding  ', active_cliques[-1][0], '\n', file=mergelog)
+							
+						i += 1
+
+					if mode == 'significant':
+						pass
+				
+				active_cliques += new_cliques
+				# if the neighborhood has empty
+				# intersection with all active
+				# cliques, add a clique containing
+				# only the deletion
+				if not intersect:
+					if mode == 'overlap':
+						active_cliques.append([set([deletion]), end0])
+					elif mode == 'fixed_distance':
+						#print(active_cliques, deletion, centerpoint0)
+						active_cliques.append([set([deletion]), centerpoint0])
+					elif mode == 'significant':
+						pass
+
+			for clique in active_cliques:
+				merged_deletions[chromosome].append(merge_deletions_in_clique(clique[0]))
+
+		return merged_deletions #, strangeguys
+
+class InsertionList(VariationList):
+
+	def __init__(self, filename, index=None):
+
+		self.variations = defaultdict(list)
+		self.var_type = 'INS'
+
+		n = 0
+
+		for fields in (s.strip().split() for s in file(filename)):
+
+			n += 1
+
+			if (not 4 <= len(fields) <= 5) or (not fields[3] in ['INS','DEL']):
+				print('Error parsing file "%s". Offending line: %d'%(filename,n), file=sys.stderr)
+				sys.exit(1)
+			if (fields[1] == 'n/a') or (fields[2] == 'n/a') or (not fields[3] == 'INS'):
+				continue
+
+			chromosome, breakpoint, length = fields[0].lower(), int(fields[1]), int(fields[2])
+			if not chromosome.startswith('chr'):
+				chromosome = 'chr' + chromosome
+			
+			if len(fields) == 5:
+				tags = fields[4]
+			else:
+				tags = ''
+			# if information present, then add tag given in field 4
+			#if len(fields) == 5:
+			#	tags.append(fields[4])
+
+			# convert from 1-based, inclusive coordinates to pythonic coordinates
+			self.variations[chromosome].append((breakpoint-1, length, tags, index))
+			
+#	def compute_count_stats(self, chromosome_lengths, delta=0):
+#		
+#		VariationList.compute_count_stats(self, chromosome_lengths, 'INS', delta)
+
+	def add_insertions_from_file(self, filename):
+
+		more_insertions = defaultdict(list)
+
+		n = 0
+		
+		for fields in (s.strip().split() for s in file(filename)):
+
+			n += 1
+			
+			if (not 4 <= len(fields) <= 5) or (not fields[3] in ['INS','DEL']):
+				print('Error parsing file "%s". Offending line: %d'%(filename,n), file=sys.stderr)
+				sys.exit(1)
+			if (fields[1] == 'n/a') or (fields[2] == 'n/a') or (not fields[3] == 'INS'):
+				continue
+
+			chromosome, breakpoint, length = fields[0].lower(), int(fields[1]), int(fields[2])
+			if not chromosome.startswith('chr'):
+				chromosome = 'chr' + chromosome
+
+			tags = set()
+			# if information present, then add tag given in field 4
+			if len(fields) == 5:
+				tags.add(fields[4])
+
+			# convert from 1-based, inclusive coordinates to pythonic coordinates
+			more_insertions[chromosome].append((start-1, end, tags))
+
+		for chromosome in more_insertions.keys():
+			
+			if chromosome in self.variations.keys():
+				self.variations[chromosome] += more_insertions[chromosome]
+				self.variations[chromosome].sort()
+			else:
+				self.variations[chromosome] = more_insertions[chromosome]
+				self.variations[chromosome].sort()
+
+
+def join_callsets(var_type, *callsets):
+	
+	if var_type not in ['DEL','INS']:
+		print('Error: invalid argument to join_callsets', file=sys.stderr)
+		sys.exit(1)
+
+	allcalls = deepcopy(callsets[0])
+	for callset in callsets[1:]:
+		allcalls.add_calls(callset)
+
+	return allcalls
+	
+
+def main():
+
+	parser = OptionParser(usage=usage)
+
+	parser.add_option("-M", action="store", dest="mode", default="fixed_distance",
+				     help='Operation mode: "fixed_distance" or "overlap" or "significant" (default: "fixed_distance").')
+	parser.add_option("-c", action="store", dest="chromosomes", default=None,
+				     help="Comma separated list of chromosomes to consider (default: all).")
+	parser.add_option("-C", action="store", dest="chromosome_lengths_file", default=None,
+				     help='File with chromosome lengths, needed when running in mode "significant".')
+	parser.add_option("-p", action="store", dest="siglevel", type=float, default=0.01,
+				     help="Significance level (i.e. p-value threshold) for mode \"significant\"; has no effect in other modes (default: 0.01)")
+	parser.add_option("-m", action="store", dest="mergeoffset", type=int, default=50,
+				     help="maximum distance allowed between centerpoints for merging calls")
+	parser.add_option("-y", action="store", dest="mergedifflength", type=int, default=20,
+				     help="maximum difference in length allowed between centerpoints for merging calls")
+	parser.add_option("-f", action="store_true", dest="trio", default=False,
+					help="If set, expects trio call file.")
+	parser.add_option("-N", action="store", dest="tool_names", default=None,
+					help="Comma-separated list of names of tools to be used in INFO (default: use filenames). Is supposed to be in the order of the arguments.")
+	
+	(options, args) = parser.parse_args()
+	if (len(args) < 2):
+		parser.print_help()
+		sys.exit(1)
+
+	if not options.mode in ['overlap','fixed_distance','significant']:
+		print('Error: Invalid argument to option -M', file=sys.stderr)
+		return 1
+
+#	if options.chromosomes != None:
+#		chromosomes = set(options.chromosomes.split(','))
+#	else:
+#		chromosomes = set()
+#		chromosomes.update(true_variants.get_chromosomes())
+#		for predictions in predictions_lists:
+#			chromosomes.update(predictions.get_chromosomes())
+
+	if options.tool_names == None:
+		tool_names = args
+	else:
+		tool_names = options.tool_names.strip().split(',')
+		if len(tool_names) != len(args):
+			print('Error: %d tools names given (option -N), but %d predictions present.'%(len(tool_names),len(args)))
+			return 1
+	
+	delcalls = []
+	inscalls = []
+	for i, filename in enumerate(args):
+		print('Reading deletions from file', filename, file=sys.stderr)
+		delcalls.append(DeletionList(filename, i)) # i is important for ordering calls
+#		print('Reading insertions from file', filename, file=sys.stderr)
+#		inscalls.append(InsertionList(filename, i))
+
+#	assert len(delcalls) == len(inscalls)
+
+	if options.mode == 'significant':
+		if options.chromosome_lengths_file == None:
+			print('Error: Option -C is required when running in "significant" mode (chosen by option -M).', file=sys.stderr)
+			return 1
+		chromosome_lengths = dict([(f[0].lower(),int(f[2])) for f in (s.split() for s in open(options.chromosome_lengths_file))])
+		delstats = []
+		insstats = []
+		for i in range(len(deletioncallsets)):
+			delstats.append(delcalls[i].compute_count_stats(chromosome_lengths))
+			insstats.append(inscalls[i].compute_count_stats(chromosome_lengths))
+
+	else:
+		chromosome_lengths = None
+		delstats = None
+		insstats = None
+
+
+	alldeletions = join_callsets('DEL', *delcalls) # that also sorts the calls
+#	allinsertions = join_callsets('INS', *inscalls)
+
+#	mergedvars = VariationList_from_dict(alldeletions.merge(options.mode)[0], 'DEL')
+	mergedvars = VariationList_from_dict(alldeletions.merge(options.mode, options.mergeoffset, options.mergedifflength), 'DEL')
+#	mergedvars.write_spaced('mergeddeletions.mode-%s.txt' % (options.mode))
+	mergedvars.write_vcf(tool_names, None)
+#	strangeguysvars = VariationList_from_dict(alldeletions.merge(options.mode)[1], 'DEL')
+#	strangeguysvars.write_spaced('strangedeletions.mode-%s.txt' % (options.mode))
+
+	alldeletions.write_spaced(tool_names, 'alldeletions.txt')
+#	allinsertions.write_spaced('allinsertions.txt')
+
+#	print('Reading deletions from file', args[1], file=sys.stderr)
+#	deletions = DeletionList(args[1])
+#	for filename in args[1:]:
+#		print('Adding deletions from file', filename, file=sys.stderr)
+#		deletions.add_deletions(filename)
+
+#	print('Reading insertions from file', args[1], file=sys.stderr)
+#	insertions = InsertionList(args[1])
+#	for filename in args[1:]:
+#		print('Adding insertions from file', filename, file=sys.stderr)
+#		insertions.add_insertions(filename)
+
+
+if __name__ == '__main__':
+	sys.exit(main())
