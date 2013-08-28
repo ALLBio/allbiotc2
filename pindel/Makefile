@@ -58,7 +58,7 @@ all: $(OUT)
 
 # Pindel
 %.pindel/pindel.cfg: %.bam %.pindel/bd.cfg
-	(PINDEL_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean | cut -f 2 -d ':'`;echo '$<\t'$$PINDEL_INSERTSIZE'\t$<' > $@)
+	(PINDEL_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean | cut -f 2 -d ':'`;echo '$<	'$$PINDEL_INSERTSIZE'	$<' > $@)
 
 %.pindel/pindel_res: %.pindel/pindel.cfg %.bam %.bam.bai
 	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -i $< -o $@  -I -T $(PINDEL_THREADS) && touch $@

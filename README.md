@@ -1,6 +1,6 @@
-# ALLBio tc2
+# ALLBio testcase #2
 
-This repository is used to store scripts written during the Hackathon of ALLBio Testcase 2.
+This repository is used to store scripts written during the hackathon of ALLBio Testcase 2.
 The aims of this project are:
 
 * to provide a pipeline for Structural variation calling
@@ -19,11 +19,14 @@ Grab a copy of this repository from GitHub to your home folder and store this in
 
 	cd ~
 	git clone https://github.com/ALLBio/allbiotc2.git
+	cd allbiotc2/
+	make install
+The `make install` command will do a system-wide install. This step requires `sudo` rights.
 
 
-## Preprocessing your data
+## Preprocessing reference VCF
 
-Preparing the reference VCF from SDI format:
+If reference calls are provided in `SDI` format, the following procedure can be followed to convert from SDI to VCF.
 
 
 	make -f ../scripts/Makefile \
@@ -83,8 +86,9 @@ The most important and required variables are:
 * `REFERENCE_DIR`: Path to the reference
 * `REFERENCE_VCF`: Full path to the VCF file with reference SV calls for benchmarking
 * `FASTQ_EXTENSION`: Filename extentension of the FastQ files
-* `PEA_MARK`: Filenaming of the left read of FastQ: sample-<PEA_MARK>.<FASTQ_EXTENSION>
-* `PEB_MARK`: Filenaming of the right read of FastQ: sample-<PEB_MARK>.<FASTQ_EXTENSION>
+* `PEA_MARK`: Filenaming of the left read of FastQ: sample-`PEA_MARK`.`FASTQ_EXTENSION`
+* `PEB_MARK`: Filenaming of the right read of FastQ: sample-`PEB_MARK`.`FASTQ_EXTENSION`
+* `*_THREADS`: Set the amount of cores to used by the programs.
 
 
 Example invocation of the pipeline:
@@ -106,36 +110,17 @@ Example invocation of the pipeline:
 	allbio@workbench:/virdir/Backup/synthetic_run$ tree -L 1
 	.
 	├── input
-	│   ├── reference_gapclosed
-	│   │   ├── bowtie2
-	│   │   ├── bwa
-	│   │   ├── reference.fa -> ../synthetic-genome-with-Ns.fasta
-	│   │   └── reference.fa.fai
 	│   ├── reference_tair10
 	│   │   ├── bowtie2
 	│   │   ├── bwa
 	│   │   ├── reference.fa
 	│   │   ├── reference.fa.fai
-	│   │   ├── TAIR10_chr1.fas
-	│   │   ├── TAIR10_chr2.fas
-	│   │   ├── TAIR10_chr3.fas
-	│   │   ├── TAIR10_chr4.fas
-	│   │   ├── TAIR10_chr5.fas
-	│   │   ├── TAIR10_chrC.fas
-	│   │   └── TAIR10_chrM.fas
-	│   ├── reference_tair9
-	│   │   ├── bowtie2
-	│   │   ├── bwa
-	│   │   ├── reference.fa -> TAIR9_chr_all.fas
-	│   │   ├── reference.fa.fai
-	│   │   └── TAIR9_chr_all.fas
 	│   ├── sim-reads_1.fastq
 	│   ├── sim-reads_2.fastq
 	│   ├── sim-reads.409_10.1.fastq
 	│   ├── sim-reads.409_10.2.fastq
 	│   ├── sim-reads.511_10.1.fastq
 	│   ├── sim-reads.511_10.2.fastq
-	│   └── synthetic-genome-with-Ns.fasta -> //virdir/Backup/reads_and_reference/synthetic-genome/synthetic-genome-with-Ns.fasta
 	├── log
 	├── run_integrationtest
 	│   ├── bd.cfg
@@ -157,6 +142,7 @@ Example invocation of the pipeline:
 	│   ├── sim-read-511_10.gasv
 	│   ├── sim-read-511_10.gasv.vcf
 	│   ├── sim-read-511_10.pindel
+	│   ├── sim-read-511_10.pindel.vcf
 	│   ├── sim-read-511_10.prism
 	│   ├── sim-read-511_10.prism.vcf
 	│   ├── sim-read-511_10.raw_fastqc
@@ -164,7 +150,6 @@ Example invocation of the pipeline:
 	│   ├── sim-read-511_10.trimmed_fastqc
 	│   └── sim-read-511_10.unsort.bam
 	└── scripts
-	    ├── Makefile -> /virdir/Backup/git/allbiotc2/Makefile
-	    └── preprocess-bwa.mk -> /virdir/Backup/git/allbiotc2/preprocess/preprocess-bwa.mk
+	    ├── Makefile -> ~/allbiotc2/Makefile
 	
 
