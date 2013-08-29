@@ -24,7 +24,7 @@ Grab a copy of this repository from GitHub to your home folder and store this in
 The `make install` command will do a system-wide install. This step requires `sudo` rights.
 
 
-## Preprocessing reference VCF
+## Preprocessing reference VCF (optional)
 
 If reference calls are provided in `SDI` format, the following procedure can be followed to convert from SDI to VCF.
 
@@ -68,12 +68,8 @@ The software for the pipeline is placed into one central location in the followi
 	├── sickle-master
 	├── snappy-java-1.0.3-rc3.jar
 	├── sratoolkit.2.3.1-ubuntu64
-	├── suppdatafile
 	├── SVDetect_r0.8b
-	├── SVM2
-	├── SVMerge
-	├── svtoolkit
-	└── tarballs
+	└── svtoolkit
 
 
 ## Running the pipeline
@@ -114,7 +110,7 @@ Example invocation of the pipeline:
 	│   │   ├── bowtie2
 	│   │   ├── bwa
 	│   │   ├── reference.fa
-	│   │   ├── reference.fa.fai
+	│   │   └── reference.fa.fai
 	│   ├── sim-reads_1.fastq
 	│   ├── sim-reads_2.fastq
 	│   ├── sim-reads.409_10.1.fastq
@@ -150,6 +146,6 @@ Example invocation of the pipeline:
 	│   ├── sim-read-511_10.trimmed_fastqc
 	│   └── sim-read-511_10.unsort.bam
 	└── scripts
-	    ├── Makefile -> ~/allbiotc2/Makefile
+	    └── Makefile -> ~/allbiotc2/Makefile
 	
 

@@ -21,10 +21,6 @@ export MAKEFILE_DIR THIS_MAKEFILE
 #######################
 #### Basic checking ###
 #######################
-.PHONY: help
-
-help:
-	echo ALLBio pipeline
 
 # only check the variable in non-install goals
 ifneq ($(MAKECMDGOALS),install)
@@ -41,11 +37,6 @@ endif
 
 all: fastqc alignment aligmentstats sv_vcf report
 
-qc: $(addsuffix .fastqc, $(SINGLES))
-BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
-alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
-aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
-
 ##############################
 ### Generate reference VCF ###
 ##############################
@@ -59,6 +50,10 @@ $(REFERENCE_VCF): $(SDI_FILE)
 ### Alignment ###
 #################
 
+BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
+alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
+aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
+
 %.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
@@ -71,12 +66,6 @@ $(REFERENCE_VCF): $(SDI_FILE)
 %.flagstat: %.bam
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
 
-
-.PHONY: clean
-
-clean:
-	rm -rf *.bam *.bai *.sam *.flagstat *.fastqc *~
-
 ###############
 ### Targets ###
 ###############
@@ -88,16 +77,17 @@ SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 
 # Partial recipies
+qc: $(addsuffix .fastqc, $(SINGLES))
 FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)))
 
 
-.PHONY: test
-
 #########################
 ### Debug targets     ###
 #########################
+
+.PHONY: test
 
 # Debugging variables
 test:
@@ -178,6 +168,13 @@ $(OUT_DIR):
 install:
 	echo Install python packages for the pipeline
 	sudo apt-get install python-biopython
+	
 
+.PHONY: help
+help:
+	echo ALLBio pipeline
 
+.PHONY: clean
 
+clean:
+	rm -rf *.bam *.bai *.sam *.flagstat *.fastqc *~

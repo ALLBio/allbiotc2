@@ -21,7 +21,7 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 ### Used Programs ###
 #####################
 
-# Programs folder for custum software. 
+# Programs folder for custom software. 
 PROGRAMS := /virdir/Scratch/software
 PROGRAMS_DIR := $(PROGRAMS)
 
