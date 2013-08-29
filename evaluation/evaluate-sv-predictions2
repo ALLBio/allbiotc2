@@ -118,7 +118,7 @@ def nonemin(v1, v2):
 	if math.isnan(v2): return v1
 	return min(v1,v2)
 
-allowed_dna_chars = set(['A','C','G','T','N','a','c','g','t','n'])
+allowed_dna_chars = set(['A','C','G','T','R','Y','M','K','W','S','B','D','H','V','N','a','c','g','t','r','y','m','k','w','s','b','d','h','v','n'])
 
 def valid_dna_string(s):
 	chars = set(c for c in s)
@@ -189,7 +189,7 @@ class VariationList:
 					if (not header_dict.has_key('mother')) or (not header_dict.has_key('father')) or (not header_dict.has_key('child')):
 						print('Expecting sample names "mother", "father", and "child" when in trio mode.', file=sys.stderr)
 						sys.exit(1)
-
+				continue
 			fields = line.split()
 			ref = fields[3]
 			alt = fields[4]
@@ -1463,8 +1463,8 @@ def main():
 		for i,predictions in enumerate(predictions_lists):
 			del_recall_list = true_variants.deletion_hit_statistics(predictions, chromosomes, true_deletion_stats, options.mode, options.trio, min_length, max_length, options.offset, options.difflength, options.siglevel, None)
 			del_prec_list = predictions.deletion_hit_statistics(true_variants, chromosomes, true_deletion_stats, options.mode, options.trio, min_length, max_length, options.offset, options.difflength, options.siglevel, None)
-			ins_recall_list = true_variants.insertion_hit_statistics(predictions, chromosomes, true_insertion_stats, options.mode, min_length, max_length, options.offset, options.difflength, options.siglevel, None)
-			ins_prec_list = predictions.insertion_hit_statistics(true_variants, chromosomes, true_insertion_stats, options.mode, min_length, max_length, options.offset, options.difflength, options.siglevel, None)
+			ins_recall_list = true_variants.insertion_hit_statistics(predictions, chromosomes, true_insertion_stats, options.mode, options.trio, min_length, max_length, options.offset, options.difflength, options.siglevel, None)
+			ins_prec_list = predictions.insertion_hit_statistics(true_variants, chromosomes, true_insertion_stats, options.mode, options.trio, min_length, max_length, options.offset, options.difflength, options.siglevel, None)
 			stats_lists.append((ins_prec_list, ins_recall_list, del_prec_list, del_recall_list))
 			if i == 0:
 				true_indel_counts.append((len(ins_recall_list),len(del_recall_list)))
