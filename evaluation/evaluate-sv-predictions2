@@ -887,6 +887,12 @@ def typematrix_to_individual_rate(typematrix, compare_gt):
 					if (type1[i] == '0') == (type2[i] == '0'): correct += count
 	return nan_div(correct, total)
 
+def format_heading(s, width):
+	assert len(s) + 4 <= width
+	left = (width - 2 - len(s)) // 2
+	right = width - 2 - len(s) - left
+	return ('='*left) + ' ' + s + ' ' + ('='*right)
+
 def format_range(s, width):
 	assert len(s) + 6 <= width
 	left = (width - 4 - len(s)) // 2
@@ -1213,26 +1219,40 @@ def print_results_ascii(results, length_ranges, true_indel_counts, print_typing)
 	w0 = max(max(len(t.name) for t in results[0]) + 1, 4)
 	# width of other columns
 	w = 10
-	# total width
-	wt = w0 + 15*w
-	print('='*wt)
-	print(' '*w0, format_range('Insertions', 6*w),' '*w, format_range('Deletions', 8*w), sep='')
+	# ============ print insertions ==============
+	wt = w0 + 6*w
+	print(format_heading("INSERTIONS", wt))
 	if print_typing:
-		print(right_pad('Tool',w0), left_pad('Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), ' '*w,left_pad('Prec.',w), left_pad('Ind.Prec.',w), left_pad('GT.Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
+		print(right_pad('Tool',w0), left_pad('Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
 	else:
-		print(right_pad('Tool',w0), left_pad('Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), ' '*w,left_pad('Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
+		print(right_pad('Tool',w0), left_pad('Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
 	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
 		print('-'*wt)
-		print('Length range %d-%d'%length_range,'(insertions: %d, deletions %d)'%true_indels)
+		print('Length range %d-%d'%length_range,'(true insertions: %d)'%true_indels[0])
+		for tool_stats in toolwise_results:
+			print(right_pad(tool_stats.name,w0), format_value(tool_stats.insertion_precision,w), format_value(tool_stats.insertion_recall,w), format_value(tool_stats.insertion_exclusivity,w), format_value(tool_stats.insertion_f,w), format_value(tool_stats.insertion_avg_lendiff,w,1.0), format_value(tool_stats.insertion_avg_distance,w,1.0), sep='')
+	print('='*wt + '\n')
+	# ============ print deletions ==============
+	# total width
+	if print_typing:
+		wt = w0 + 8*w
+	else:
+		wt = w0 + 6*w
+	print(format_heading("DELETIONS", wt))
+	if print_typing:
+		print(right_pad('Tool',w0),left_pad('Prec.',w), left_pad('Ind.Prec.',w), left_pad('GT.Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
+	else:
+		print(right_pad('Tool',w0),left_pad('Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
+	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
+		print('-'*wt)
+		print('Length range %d-%d'%length_range,'(true deletions %d)'%true_indels[1])
 		for tool_stats in toolwise_results:
 			if print_typing:
 				deletion_ind_prec = typematrix_to_individual_rate(tool_stats.deletion_precision_types, False)
 				deletion_gt_prec = typematrix_to_individual_rate(tool_stats.deletion_precision_types, True)
-				print(right_pad(tool_stats.name,w0), format_value(tool_stats.insertion_precision,w), format_value(tool_stats.insertion_recall,w), format_value(tool_stats.insertion_exclusivity,w), format_value(tool_stats.insertion_f,w), format_value(tool_stats.insertion_avg_lendiff,w,1.0), format_value(tool_stats.insertion_avg_distance,w,1.0),' '*w,\
-					format_value(tool_stats.deletion_precision,w), format_value(deletion_ind_prec,w), format_value(deletion_gt_prec,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
+				print(right_pad(tool_stats.name,w0), format_value(tool_stats.deletion_precision,w), format_value(deletion_ind_prec,w), format_value(deletion_gt_prec,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
 			else:
-				print(right_pad(tool_stats.name,w0), format_value(tool_stats.insertion_precision,w), format_value(tool_stats.insertion_recall,w), format_value(tool_stats.insertion_exclusivity,w), format_value(tool_stats.insertion_f,w), format_value(tool_stats.insertion_avg_lendiff,w,1.0), format_value(tool_stats.insertion_avg_distance,w,1.0),' '*w,\
-					format_value(tool_stats.deletion_precision,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
+				print(right_pad(tool_stats.name,w0), format_value(tool_stats.deletion_precision,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
 	print('='*wt)
 
 def print_results_latex(results, length_ranges, true_indel_counts):
@@ -1243,14 +1263,13 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 	# width of other columns
 	w = 14
 	print('\\section{Overall performance}')
-	print('\\begin{longtable}{lrrrrrr@{\\qquad}rrrrrr}')
+	print('\\subsection{Insertions}')
+	print('\\begin{longtable}{lrrrrrr}')
 	print('\\hline')
-	print(' '*w0,' & \\multicolumn{6}{c}{\\textbf{Insertions}} & \\multicolumn{6}{c}{\\textbf{Deletions}} \\\\', sep = '')
-	print(' '*w0, left_pad('Prec.',w), left_pad('Rec.',w), left_pad('Exc.',w), left_pad('F.',w), left_pad('$\Delta$Len.',w), left_pad('Dist.',w),\
-		left_pad('Prec.',w), left_pad('Rec.',w), left_pad('Exc.',w), left_pad('F.',w), left_pad('$\Delta$Len.',w), left_pad('Dist.',w), sep=' & ', end='\\\\\n')
+	print(' '*w0, left_pad('Prec.',w), left_pad('Rec.',w), left_pad('Exc.',w), left_pad('F.',w), left_pad('$\Delta$Len.',w), left_pad('Dist.',w), sep=' & ', end='\\\\\n')
 	print('\hline')
 	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
-		print('\\multicolumn{13}{l}{\\textbf{Length Range %d--%d}'%length_range, '(%s true ins., %s true del.)}\\\\'%(format(true_indels[0],',d'),format(true_indels[1],',d')))
+		print('\\multicolumn{7}{l}{\\textbf{Length Range %d--%d}'%length_range, '(%s true insertions)}\\\\'%format(true_indels[0],',d'))
 		best = ToolStatistics()
 		for tool_stats in toolwise_results:
 			best.improve(tool_stats)
@@ -1263,6 +1282,22 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 				format_value_tex(tool_stats.insertion_f,w,best.insertion_f),
 				format_value_tex(tool_stats.insertion_avg_lendiff,w,best.insertion_avg_lendiff,1.0),
 				format_value_tex(tool_stats.insertion_avg_distance,w,best.insertion_avg_distance,1.0),
+			sep=' & ', end='\\\\\n')
+		print('\hline')
+	print('\\end{longtable}')
+	print('\\subsection{Deletions}')
+	print('\\begin{longtable}{lrrrrrr}')
+	print('\\hline')
+	print(' '*w0, left_pad('Prec.',w), left_pad('Rec.',w), left_pad('Exc.',w), left_pad('F.',w), left_pad('$\Delta$Len.',w), left_pad('Dist.',w), sep=' & ', end='\\\\\n')
+	print('\hline')
+	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
+		print('\\multicolumn{7}{l}{\\textbf{Length Range %d--%d}'%length_range, '(%s true deletions)}\\\\'%format(true_indels[1],',d'))
+		best = ToolStatistics()
+		for tool_stats in toolwise_results:
+			best.improve(tool_stats)
+		for tool_stats in toolwise_results:
+			print(
+				right_pad(tool_stats.name,w0),
 				format_value_tex(tool_stats.deletion_precision,w,best.deletion_precision),
 				format_value_tex(tool_stats.deletion_recall,w,best.deletion_recall),
 				format_value_tex(tool_stats.deletion_exclusivity,w,best.deletion_exclusivity),
@@ -1477,7 +1512,7 @@ def main():
 		print('\\usepackage{listings}')
 		print('\\lstset{breaklines=true,breakatwhitespace=false,basicstyle=\\ttfamily}')
 		print('\\begin{document}')
-		print('\\scriptsize')
+		#print('\\scriptsize')
 		print('\\section{Command line}')
 		print('\\begin{lstlisting}')
 		print(' '.join(sys.argv))
