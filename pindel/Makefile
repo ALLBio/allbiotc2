@@ -34,7 +34,7 @@ BREAKDANCE_BAM2CFG := perl $(BREAKDANCE_DIR)/lib/breakdancer-max-unstable/bam2cf
 PINDEL_DIR := $(PROGRAMS_DIR)/pindel/trunk
 PINDEL := $(PINDEL_DIR)/pindel
 PINDEL2VCF := $(PINDEL_DIR)/pindel2vcf
-PINDEL_THREADS = 8
+PINDEL_THREADS = 16
 PINDEL_OUTPUT_EXTENTIONS := .pindel_D .pindel_SI .pindel_LI .pindel_INT .pindel_INV .pindel_TD
 PINDEL_TOVCF_EXTENSION := .pindel_D .pindel_SI .pindel_INV .pindel_TD
 
@@ -58,7 +58,7 @@ all: $(OUT)
 
 # Pindel
 %.pindel/pindel.cfg: %.bam %.pindel/bd.cfg
-	(PINDEL_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean | cut -f 2 -d ':'`;echo '$<	'$$PINDEL_INSERTSIZE'	$<' > $@)
+	(PINDEL_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean: | cut -f 2 -d ':'`;echo '$<	'$$PINDEL_INSERTSIZE'	$<' > $@)
 
 %.pindel/pindel_res: %.pindel/pindel.cfg %.bam %.bam.bai
 	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -i $< -o $@  -I -T $(PINDEL_THREADS) && touch $@

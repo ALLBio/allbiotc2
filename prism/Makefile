@@ -44,7 +44,7 @@ all: $(OUT)
 # expect $(IN) = %.bam
 %.prism/split_all.sam_ns_rmmul_cigar_sorted_sv: %.sam $(REFERENCE) bd.cfg
 	mkdir -p $(dir $@);
-	(export PRISM_PATH=$(PRISM_DIR);PRISM_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean | cut -f 2 -d ':' | python -c "print '%d' % round(float(raw_input()),0)"`; PRISM_INSERTSIZESD=`sed -e 's/\t/\n/g' $(lastword $^) | grep std | cut -f 2 -d ':' | python -c "print '%d' % round(float(raw_input()),0)"`;$(PRISM) -m $$PRISM_INSERTSIZE -e $$PRISM_INSERTSIZESD -I $(dir $@) -O $(dir $@) -r $(REFERENCE) -i $< -a BWA)
+	(export PRISM_PATH=$(PRISM_DIR);PRISM_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean: | cut -f 2 -d ':' | python -c "print '%d' % round(float(raw_input()),0)"`; PRISM_INSERTSIZESD=`sed -e 's/\t/\n/g' $(lastword $^) | grep std: | cut -f 2 -d ':' | python -c "print '%d' % round(float(raw_input()),0)"`;$(PRISM) -m $$PRISM_INSERTSIZE -e $$PRISM_INSERTSIZESD -I $(dir $@) -O $(dir $@) -r $(REFERENCE) -i $< -a BWA)
 
 %.prism.vcf: %.prism/split_all.sam_ns_rmmul_cigar_sorted_sv
 	$(PRISM2VCF) -f $< -o $@
