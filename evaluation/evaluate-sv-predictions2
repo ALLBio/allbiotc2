@@ -84,10 +84,16 @@ class VariationStatistics:
 		self.chromosome = chromosome
 		self.index = index
 		self.typing = typing
-		# List of (similar) annotations: (index,length_diff,offset,genotype)
+		# List of (similar) annotations of same type, i.e. insertion/deletion: (index,length_diff,offset,genotype)
 		self.hits = []
-	def add_hit(self, index, length_diff, offset, typing=None):
-		self.hits.append((index,length_diff,offset,typing))		
+		# List of hits to events of type MIX: (index,length_diff,offset,genotype)
+		self.mix_hits = []
+	def add_hit(self, index, length_diff, offset, typing=None, mix_hit=False):
+		#print('add_hit',index, length_diff, offset, typing, mix_hit, file=sys.stderr)
+		if mix_hit:
+			self.mix_hits.append((index,length_diff,offset,typing))
+		else:
+			self.hits.append((index,length_diff,offset,typing))
 	def is_hit(self):
 		return len(self.hits) > 0
 	def get_best_hit(self):
@@ -101,6 +107,8 @@ class VariationStatistics:
 				best_score = score
 				best_index = i
 		return self.hits[best_index]
+	def is_mix_hit(self):
+		return len(self.mix_hits) > 0
 
 def nonemax(v1, v2):
 	"""None-aware version of max."""
@@ -131,6 +139,7 @@ class ToolStatistics:
 		self.insertion_count = None
 		self.insertion_recall = None
 		self.insertion_precision = None
+		self.insertion_mix_hits = None
 		self.insertion_exclusivity = None
 		self.insertion_avg_lendiff = None
 		self.insertion_avg_distance = None
@@ -144,6 +153,7 @@ class ToolStatistics:
 		self.deletion_count = None
 		self.deletion_recall = None
 		self.deletion_precision = None
+		self.deletion_mix_hits = None
 		self.deletion_exclusivity = None
 		self.deletion_avg_lendiff = None
 		self.deletion_avg_distance = None
@@ -159,12 +169,14 @@ class ToolStatistics:
 		self.name = None
 		self.insertion_recall = nonemax(self.insertion_recall, results.insertion_recall)
 		self.insertion_precision = nonemax(self.insertion_precision, results.insertion_precision)
+		self.insertion_mix_hits = nonemax(self.insertion_mix_hits, results.insertion_mix_hits)
 		self.insertion_exclusivity = nonemax(self.insertion_exclusivity, results.insertion_exclusivity)
 		self.insertion_avg_lendiff = nonemin(self.insertion_avg_lendiff, results.insertion_avg_lendiff)
 		self.insertion_avg_distance = nonemin(self.insertion_avg_distance, results.insertion_avg_distance)
 		self.insertion_f = nonemax(self.insertion_f, results.insertion_f)
 		self.deletion_recall = nonemax(self.deletion_recall, results.deletion_recall)
 		self.deletion_precision = nonemax(self.deletion_precision, results.deletion_precision)
+		self.deletion_mix_hits = nonemax(self.deletion_mix_hits, results.deletion_mix_hits)
 		self.deletion_exclusivity = nonemax(self.deletion_exclusivity, results.deletion_exclusivity)
 		self.deletion_avg_lendiff = nonemin(self.deletion_avg_lendiff, results.deletion_avg_lendiff)
 		self.deletion_avg_distance = nonemin(self.deletion_avg_distance, results.deletion_avg_distance)
@@ -235,11 +247,15 @@ class VariationList:
 					svlen = abs(int(info_fields['SVLEN']))
 					coord1 = int(fields[1]) - 1
 					coord2 = coord1 + svlen
+					coord3 = None
 				elif info_fields['SVTYPE'] == 'INS':
 					vartype = 'INS'
 					svlen = abs(int(info_fields['SVLEN']))
 					coord1 = int(fields[1]) - 1
 					coord2 = svlen
+					coord3 = None
+				elif info_fields['SVTYPE'] == 'MIX':
+					assert False, 'Encountered SVTYPE=MIX without explicit sequences'
 			else:
 				if (not valid_dna_string(ref)) or (not valid_dna_string(alt)):
 					continue
@@ -248,11 +264,20 @@ class VariationList:
 					svlen = len(ref) - 1
 					coord1 = int(fields[1])
 					coord2 = coord1 + svlen
+					coord3 = None
 				elif (len(ref) == 1) and (len(alt) > 1):
 					vartype = 'INS'
 					svlen = len(alt) - 1
 					coord1 = int(fields[1])
 					coord2 = svlen
+					coord3 = None
+				elif (len(ref) > 1) and (len(alt) > 1):
+					vartype = 'MIX'
+					del_len = len(ref) - 1
+					ins_len = len(alt) - 1
+					coord1 = int(fields[1])
+					coord2 = coord1 + del_len
+					coord3 = ins_len
 				else:
 					continue
 			if not fields[0][:3] == 'chr':
@@ -279,7 +304,11 @@ class VariationList:
 						genotype += '0'
 				if genotype == '000': continue
 #				typing = alltypedict[genotype]
-			self.variations[chromosome].append((coord1, coord2, vartype, genotype))
+			# Meaning of coordinate values (coord1, coord2, coord3) for different event types
+			# DEL: start, end, none
+			# INS: pos, length, none
+			# MIX: del_start, del_end, ins_length
+			self.variations[chromosome].append((coord1, coord2, coord3, vartype, genotype))
 
 	def probeVCFversion(self, line):
 		# Detect VCF version, do not rely on header since this could be a faulty template.
@@ -295,16 +324,16 @@ class VariationList:
 	def get(self, chromosome, index):
 		"""Returns coordinates (coord1, coord2, var_type) for the variation with given index."""
 		chromosome = chromosome.lower()
-		coord1, coord2, var_type, tags = self.variations[chromosome][index]
+		coord1, coord2, coord3, var_type, tags = self.variations[chromosome][index]
 		if not tags or len(tags) == 0:
 			tags = set([None])
-		return coord1, coord2, var_type, tags
+		return coord1, coord2, coord3, var_type, tags
 	def get_deletion_bitarray(self, chromosome, chromosome_length, min_length=None, max_length=None):
 		"""Returns a bitarray where all deleted positions are set to one."""
 		chromosome = chromosome.lower()
 		b = bitarray(chromosome_length)
 		b.setall(0)
-		for start, end, var_type, tags in self.variations[chromosome]:
+		for start, end, no_coord, var_type, tags in self.variations[chromosome]:
 			if var_type != 'DEL': continue
 			length = end-start
 			if (min_length != None) and (length < min_length): continue
@@ -324,25 +353,37 @@ class VariationList:
 		if offset == None: offset = 0
 		chromosome = chromosome.lower()
 		events = []
-		for n, (start, end, var_type, tags) in enumerate(self.variations[chromosome]):
+		for n, (coord1, coord2, coord3, var_type, tags) in enumerate(self.variations[chromosome]):
 			if var_type != 'DEL': continue
 			if (tag!=None) and (not tag in tags) and not trio: continue
-			assert start <= end
-			length = end-start
+			assert coord1 <= coord2
+			length = coord2-coord1
 			if (min_length != None) and (length < min_length): continue
 			if (max_length != None) and (length > max_length): continue
-			events.append((start, 'S', 0, n))
-			events.append((end, 'E', 0, n))
-		for n, (start, end, var_type, tags) in enumerate(another_list.variations[chromosome]):
-			if var_type != 'DEL': continue
-			assert start <= end
-			length = end-start
-			if difflength == None: difflength = 0
-			if (min_length != None) and (length < max(min_length - difflength,5)): continue
-			if (max_length != None) and (length > max_length + difflength): continue
-			events.append((start-offset, 'S', 1, n))
-			events.append((end+offset, 'E', 1, n))
-			#events.append(((end + start)/2), 1, n))
+			events.append((coord1, 'S', 0, n))
+			events.append((coord2, 'E', 0, n))
+		for n, (coord1, coord2, coord3, var_type, tags) in enumerate(another_list.variations[chromosome]):
+			if var_type == 'DEL':
+				assert coord1 <= coord2
+				length = coord2-coord1
+				if difflength == None: difflength = 0
+				if (min_length != None) and (length < max(min_length - difflength,5)): continue
+				if (max_length != None) and (length > max_length + difflength): continue
+				events.append((coord1-offset, 'S', 1, n))
+				events.append((coord2+offset, 'E', 1, n))
+				#events.appcoord2(((coord2 + coord1)/2), 1, n))
+			elif var_type == 'MIX':
+				assert coord1 <= coord2
+				del_length = coord2 - coord1
+				ins_length = coord3
+				length = del_length - ins_length
+				if difflength == None: difflength = 0
+				if (min_length != None) and (length < max(min_length - difflength,5)): continue
+				if (max_length != None) and (length > max_length + difflength): continue
+				events.append((coord1-offset, 'S', 1, n))
+				events.append((coord2+offset, 'E', 1, n))
+			else:
+				continue
 		events.sort()
 		results = defaultdict(set)
 		active = [set(), set()]
@@ -375,7 +416,7 @@ class VariationList:
 		chromosome = chromosome.lower()
 		events = []
 
-		for n, (start, end, var_type, tags) in enumerate(self.variations[chromosome]):
+		for n, (start, end, no_coord, var_type, tags) in enumerate(self.variations[chromosome]):
 			if var_type != 'DEL': continue
 			if (tag!=None) and (not tag in tags): continue
 			assert start < end
@@ -386,7 +427,7 @@ class VariationList:
 			events.append((centerpoint-offset/2, 'S', 0, n))
 			events.append((centerpoint+offset/2, 'E', 0, n))	  
 
-		for n, (start, end, var_type, tags) in enumerate(another_list.variations[chromosome]):
+		for n, (start, end, no_coord, var_type, tags) in enumerate(another_list.variations[chromosome]):
 			if var_type != 'DEL': continue
 			assert start < end
 			length = end-start
@@ -423,11 +464,11 @@ class VariationList:
 		varnumber = 0
 		for chromosome in (x.lower() for x in chromosomes):
 			overlaps = self.find_all_deletion_overlaps(another_list, chromosome, trio, min_length, max_length, offset, difflength, tag)
-			for i, (start0, end0, var_type0, tags0) in enumerate(self.variations[chromosome]):
+			for i, (event0_coord1, event0_coord2, event0_coord3, var_type0, tags0) in enumerate(self.variations[chromosome]):
 				if var_type0 != 'DEL': continue
-				length0 = end0 - start0
-				if (min_length != None) and (length0 < min_length): continue
-				if (max_length != None) and (length0 > max_length): continue
+				del_length0 = event0_coord2 - event0_coord1
+				if (min_length != None) and (del_length0 < min_length): continue
+				if (max_length != None) and (del_length0 > max_length): continue
 				varnumber += 1
 				if trio: 
 #					print(tags0)
@@ -435,28 +476,35 @@ class VariationList:
 				else:
 					typing0 = None
 				if (tag!=None) and (not tag in tags0) and not trio: continue
-				center0 = (start0 + end0) / 2
+				center0 = (event0_coord1 + event0_coord2) / 2
 				stats = VariationStatistics(chromosome, i, typing0)
 				for j in overlaps[i]:
-					start1, end1, var_type1, tags1 = another_list.variations[chromosome][j]
+					event1_coord1, event1_coord2, event1_coord3, var_type1, tags1 = another_list.variations[chromosome][j]
 					if trio:
 						typing1 = index_from_type(tags1)
 					else:
 						typing1 = None
-					length1 = end1 - start1
-					center1 = (start1 + end1) / 2
-					overlap = max(0, min(end0,end1) - max(start0,start1))
+					del_length1 = event1_coord2 - event1_coord1
+					if var_type1 == "DEL":
+						effective_length1 = del_length1
+					elif var_type1 == "MIX":
+						ins_length1 = event1_coord3
+						effective_length1 = del_length1 - ins_length1
+					else:
+						assert False
+					center1 = (event1_coord1 + event1_coord2) / 2
+					overlap = max(0, min(event0_coord2,event1_coord2) - max(event0_coord1,event1_coord1))
 					if mode == 'overlap':
-						if (abs(length0-length1) <= difflength) and (overlap > 0):
-							stats.add_hit(j, abs(length0 - length1), abs(center0 - center1), typing1)
+						if (abs(del_length0-effective_length1) <= difflength) and (overlap > 0):
+							stats.add_hit(j, abs(del_length0 - effective_length1), abs(center0 - center1), typing1, var_type1 == 'MIX')
 					elif mode == 'fixed_distance':
-						if (abs(length0-length1) <= difflength) and (abs(center0-center1) <= offset):
-							stats.add_hit(j, abs(length0 - length1), abs(center0 - center1), typing1)
+						if (abs(del_length0-effective_length1) <= difflength) and (abs(center0-center1) <= offset):
+							stats.add_hit(j, abs(del_length0 - effective_length1), abs(center0 - center1), typing1, var_type1 == 'MIX')
 					elif mode == 'significant':
 						assert 0.0 < siglevel < 1.0
-						sig = callsignificance(length0, abs(center0-center1), abs(length0-length1), chromosome, count_stats) 
+						sig = callsignificance(del_length0, abs(center0-center1), abs(del_length0-effective_length1), chromosome, count_stats) 
 						if (sig <= siglevel):
-							stats.add_hit(j, abs(length0 - length1), abs(center0 - center1), typing1)
+							stats.add_hit(j, abs(del_length0 - effective_length1), abs(center0 - center1), typing1, var_type1 == 'MIX')
 					else:
 						print("Error: invalid mode \"%s\"."%mode, file=sys.stderr)
 						sys.exit(1)
@@ -472,7 +520,7 @@ class VariationList:
 		chromosome = chromosome.lower()
 		events = []
 		lengths = []
-		for n, (coord1, coord2, var_type, tags) in enumerate(self.variations[chromosome]):
+		for n, (coord1, coord2, coord3, var_type, tags) in enumerate(self.variations[chromosome]):
 			# semantics for insertions...
 			pos = coord1
 			length = coord2
@@ -483,17 +531,32 @@ class VariationList:
 			if (max_length != None) and (length > max_length): continue
 			events.append((pos, 'S', 0, n))
 			events.append((pos+length, 'E', 0, n))
-		for n, (coord1, coord2, var_type, tags) in enumerate(another_list.variations[chromosome]):
+		for n, (coord1, coord2, coord3, var_type, tags) in enumerate(another_list.variations[chromosome]):
 			# semantics for insertions...
-			pos = coord1
-			length = coord2
-			if var_type != 'INS': continue
-			if length <= 0: continue
-			if difflength == None: difflength = 0
-			if (min_length != None) and (length < max(5, min_length-difflength)): continue
-			if (max_length != None) and (length > max_length+difflength): continue
-			events.append((pos-offset, 'S', 1, n))
-			events.append((pos+length+offset, 'E', 1, n))
+			if var_type == 'INS':
+				pos = coord1
+				ins_length = coord2
+				if ins_length <= 0: continue
+				if difflength == None: difflength = 0
+				if (min_length != None) and (ins_length < max(5, min_length-difflength)): continue
+				if (max_length != None) and (ins_length > max_length+difflength): continue
+				events.append((pos-offset, 'S', 1, n))
+				events.append((pos+ins_length+offset, 'E', 1, n))
+			elif var_type == 'MIX':
+				assert coord1 <= coord2
+				del_length = coord2 - coord1
+				ins_length = coord3
+				assert ins_length > 0
+				assert del_length > 0
+				effective_length = ins_length - del_length
+				pos = (coord1 + coord2) // 2
+				if difflength == None: difflength = 0
+				if (min_length != None) and (effective_length < max(5, min_length-difflength)): continue
+				if (max_length != None) and (effective_length > max_length+difflength): continue
+				events.append((pos-offset, 'S', 1, n))
+				events.append((pos+ins_length+offset, 'E', 1, n))
+			else:
+				continue
 		events.sort()
 		results = defaultdict(set)
 		active = [set(), set()]
@@ -513,33 +576,50 @@ class VariationList:
 		stats_list = []
 		for chromosome in (x.lower() for x in chromosomes):
 			overlaps = self.insertion_distances(another_list, chromosome, trio, min_length, max_length, offset, difflength, tag)
-			for i, (pos0, length0, var_type0, tags0) in enumerate(self.variations[chromosome]):
+			for i, (event0_coord1, event0_coord2, event0_coord3, var_type0, tags0) in enumerate(self.variations[chromosome]):
 				if var_type0 != 'INS': continue
-	#			print("Self ", chromosome, pos0, length0, len(overlaps[i]), file=sys.stderr)
 				if (tag != None) and (not tag in tags0) and not trio: continue
-				start0 = pos0
-				end0 = pos0 + length0
+				#print('event0:', i, event0_coord1, event0_coord2, event0_coord3, var_type0, tags0, file=sys.stderr)
+				length0 = event0_coord2
+				start0 = event0_coord1
+				end0 = event0_coord1 + length0
 				if (min_length != None) and (length0 < min_length): continue
 				if (max_length != None) and (length0 > max_length): continue
 				stats = VariationStatistics(chromosome,i)
-	#			print("Self ", chromosome, pos0, length0, len(overlaps[i]), file=sys.stderr)
 				for j in overlaps[i]:
-					pos1, length1, var_type1, tags1 = another_list.variations[chromosome][j]
-					start1 = pos1
-					end1 = pos1 + length1
+					event1_coord1, event1_coord2, event1_coord3, var_type1, tags1 = another_list.variations[chromosome][j]
+					if trio:
+						typing1 = index_from_type(tags1)
+					else:
+						typing1 = None
+					#print(' --> event1:', event1_coord1, event1_coord2, event1_coord3, var_type1, tags1, file=sys.stderr)
+					if var_type1 == 'INS':
+						start1 = event1_coord1
+						effective_length1 = event1_coord2
+					elif var_type1 == 'MIX':
+						#continue # TODO TODO TODO
+						# set "position" of event to center of deleted part
+						start1 = (event1_coord1 + event1_coord2) // 2
+						del_length1 = event1_coord2 - event1_coord1
+						ins_length1 = event1_coord3
+						effective_length1 = ins_length1 - del_length1
+					else:
+						assert False
+					end1 = start1 + effective_length1
 					overlap = max(0, min(end0,end1) - max(start0,start1))
-					dist = abs(pos0-pos1)
+					dist = abs(event0_coord1-start1)
 					if mode == 'overlap':
-						if (overlap > 0) and (abs(length0-length1) <= difflength):
-							stats.add_hit(j, abs(length0 - length1), dist)
+						if (overlap > 0) and (abs(length0 - effective_length1) <= difflength):
+							stats.add_hit(j, abs(length0 - effective_length1), dist, typing1, var_type1 == 'MIX')
 					elif mode == 'fixed_distance':
-						if (dist <= offset) and (abs(length0-length1) <= difflength):
-							stats.add_hit(j, abs(length0 - length1), dist)
+						if (dist <= offset) and (abs(length0 - effective_length1) <= difflength):
+							#print('var_type1 == MIX:', var_type1 == 'MIX', file=sys.stderr)
+							stats.add_hit(j, abs(length0 - effective_length1), dist, typing1, var_type1 == 'MIX')
 					elif mode == 'significant':
 						assert 0.0 < siglevel < 1.0
-						sig = callsignificance(length0, dist, abs(length0-length1), chromosome, count_stats) 
+						sig = callsignificance(length0, dist, abs(length0 - effective_length1), chromosome, count_stats) 
 						if (sig <= siglevel):
-							stats.add_hit(j, abs(length0 - length1), dist)
+							stats.add_hit(j, abs(length0 - effective_length1), dist, typing1, var_type1 == 'MIX')
 					else:
 						print("Error: invalid mode \"%s\"."%mode, file=sys.stderr)
 						sys.exit(1)
@@ -654,14 +734,14 @@ def compute_delpair_significance(variants1, variants2, chromosomes, chromosome_l
 		pair_stats[chromosome] = []
 		overlaps = variants1.find_all_deletion_centerpoint_hits(variants2, chromosome, min_length, max_length, offset, difflength, tag)
 		
-		for i, (start0, end0, var_type0, tags0) in enumerate(variants1.variations[chromosome]):
+		for i, (start0, end0, no_coord0, var_type0, tags0) in enumerate(variants1.variations[chromosome]):
 			if var_type0 != 'DEL': continue
 			if (tag!=None) and (not tag in tags0): continue
 			length0 = end0 - start0
 			centerpoint0 = (start0 + end0)/2
 			for j in overlaps[i]:
 				K1, K2 = 0, 0
-				start1, end1, var_type1, tags1 = variants2.variations[chromosome][j]
+				start1, end1, no_coord1, var_type1, tags1 = variants2.variations[chromosome][j]
 				length1 = end1 - start1
 				centerpoint1 = (start1 + end1)/2
 				if abs(length1-length0) > difflength:
@@ -730,15 +810,12 @@ def summarize_variation_stats_list(stats_list):
 	"""Input: list of VariationStatistics.
 	Output: hit count, hit rate, avg. length diff, avg. distance, hit bitarray."""
 	n = len(stats_list)
-
 	hits = 0
-
+	mix_hits = 0
 	avg_length_diff = 0.0
 	avg_offset = 0.0
-
 	hit_bitarray = bitarray(n)
 	hit_bitarray.setall(0)
-	
 	typematrix = []
 	for i in range(27):
 		typematrix.append([])
@@ -747,14 +824,13 @@ def summarize_variation_stats_list(stats_list):
 	variantsums = [0]*27
 	callsums = [0]*27
 
-        # typematrix[i][j] is number of type-i-variants that are called by type-j-variant,
-        # encoding according to global variable alltypes
+	# typematrix[i][j] is number of type-i-variants that are called by type-j-variant,
+	# encoding according to global variable alltypes
 	# Note: typematrix[0][j] should be zero, for all j (0 encodes no call)
 	# Note: typematrix[i][0] is number of type-i-variants that have not been called 
 	# Note: variantsums[i] is the sum of type-i-variants
 	# Note: callsums[j] is the sum of variants called by type-j-variants
 	# Hence: (variantsums[i] - typematrix[i][0]) / variantsums[i] is type-i related recall or precision
-
 	for i, stats in enumerate(stats_list):
 		typing0 = stats.typing
 		if typing0 != None:
@@ -769,6 +845,8 @@ def summarize_variation_stats_list(stats_list):
 			if typing0 != None and typing1 != None:
 				typematrix[typing0][typing1] += 1
 				callsums[typing1] += 1
+		elif stats.is_mix_hit():
+			mix_hits += 1
 		else:
 			if typing0 != None:
 				typematrix[typing0][0] += 1 # false hit: type = '000', not in any family member
@@ -777,8 +855,9 @@ def summarize_variation_stats_list(stats_list):
 	avg_length_diff = nan_div(avg_length_diff, hits)
 	avg_offset = nan_div(avg_offset, hits)
 	hit_rate = nan_div(hits, float(n))
+	mix_hit_rate = nan_div(mix_hits, float(n))
 #	print(typematrix)
-	return hits, hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, variantsums, callsums
+	return hits, hit_rate, mix_hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, variantsums, callsums
 
 def aggregate_toolwise_statistics(stats_lists, tool_names):
 	"""Given lists [(stats_list_ins_prec,stats_list_ins_recall,stats_list_del_prec,stats_list_del_recall),..] 
@@ -791,16 +870,17 @@ def aggregate_toolwise_statistics(stats_lists, tool_names):
 	deletion_recall_bitarrays = []
 	for name, (ins_prec_list, ins_recall_list, del_prec_list, del_recall_list) in zip(tool_names,stats_lists):
 		tool_stats = ToolStatistics(name)
-		hits, hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, varsums, callsums = summarize_variation_stats_list(ins_prec_list)
+		hits, hit_rate, mix_hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, varsums, callsums = summarize_variation_stats_list(ins_prec_list)
 		tool_stats.insertion_count = len(ins_prec_list)
 		tool_stats.insertion_precision = hit_rate
+		tool_stats.insertion_mix_hits = mix_hit_rate
 #		print(hit_rate,file=sys.stderr)
 		tool_stats.insertion_avg_lendiff = avg_length_diff
 		tool_stats.insertion_avg_distance = avg_offset
 		tool_stats.insertion_precision_types = typematrix
 		tool_stats.insertion_precision_varsums = varsums
 		tool_stats.insertion_precision_callsums = callsums
-		hits, hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, varsums, callsums = summarize_variation_stats_list(ins_recall_list)
+		hits, hit_rate, mix_hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, varsums, callsums = summarize_variation_stats_list(ins_recall_list)
 		tool_stats.insertion_recall = hit_rate
 #		print(hit_rate,file=sys.stderr)
 		tool_stats.insertion_f = f_measure(tool_stats.insertion_precision, tool_stats.insertion_recall)
@@ -808,15 +888,16 @@ def aggregate_toolwise_statistics(stats_lists, tool_names):
 		tool_stats.insertion_recall_varsums = varsums
 		tool_stats.insertion_recall_callsums = callsums
 		insertion_recall_bitarrays.append(hit_bitarray)
-		hits, hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, varsums, callsums = summarize_variation_stats_list(del_prec_list)
+		hits, hit_rate, mix_hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, varsums, callsums = summarize_variation_stats_list(del_prec_list)
 		tool_stats.deletion_count = len(del_prec_list)
 		tool_stats.deletion_precision = hit_rate
+		tool_stats.deletion_mix_hits = mix_hit_rate
 		tool_stats.deletion_avg_lendiff = avg_length_diff
 		tool_stats.deletion_avg_distance = avg_offset
 		tool_stats.deletion_precision_types = typematrix
 		tool_stats.deletion_precision_varsums = varsums
 		tool_stats.deletion_precision_callsums = callsums
-		hits, hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, varsums, callsums = summarize_variation_stats_list(del_recall_list)
+		hits, hit_rate, mix_hit_rate, avg_length_diff, avg_offset, hit_bitarray, typematrix, varsums, callsums = summarize_variation_stats_list(del_recall_list)
 		tool_stats.deletion_recall = hit_rate
 		tool_stats.deletion_f = f_measure(tool_stats.deletion_precision, tool_stats.deletion_recall)
 		tool_stats.deletion_recall_types = typematrix
@@ -1224,26 +1305,26 @@ def print_results_ascii(results, length_ranges, true_indel_counts, print_typing)
 	# width of other columns
 	w = 10
 	# ============ print insertions ==============
-	wt = w0 + 7*w
+	wt = w0 + 8*w
 	print(format_heading("INSERTIONS", wt))
-	print(right_pad('Tool',w0), left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
+	print(right_pad('Tool',w0), left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Mix.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
 	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
 		print('-'*wt)
 		print('Length range %d-%d'%length_range,'(true insertions: %d)'%true_indels[0])
 		for tool_stats in toolwise_results:
-			print(right_pad(tool_stats.name,w0), left_pad(str(tool_stats.insertion_count),w), format_value(tool_stats.insertion_precision,w), format_value(tool_stats.insertion_recall,w), format_value(tool_stats.insertion_exclusivity,w), format_value(tool_stats.insertion_f,w), format_value(tool_stats.insertion_avg_lendiff,w,1.0), format_value(tool_stats.insertion_avg_distance,w,1.0), sep='')
+			print(right_pad(tool_stats.name,w0), left_pad(str(tool_stats.insertion_count),w), format_value(tool_stats.insertion_precision,w), format_value(tool_stats.insertion_mix_hits,w), format_value(tool_stats.insertion_recall,w), format_value(tool_stats.insertion_exclusivity,w), format_value(tool_stats.insertion_f,w), format_value(tool_stats.insertion_avg_lendiff,w,1.0), format_value(tool_stats.insertion_avg_distance,w,1.0), sep='')
 	print('='*wt + '\n')
 	# ============ print deletions ==============
 	# total width
 	if print_typing:
-		wt = w0 + 9*w
+		wt = w0 + 10*w
 	else:
-		wt = w0 + 7*w
+		wt = w0 + 8*w
 	print(format_heading("DELETIONS", wt))
 	if print_typing:
-		print(right_pad('Tool',w0), left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Ind.Prec.',w), left_pad('GT.Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
+		print(right_pad('Tool',w0), left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Mix.',w), left_pad('Ind.Prec.',w), left_pad('GT.Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
 	else:
-		print(right_pad('Tool',w0), left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
+		print(right_pad('Tool',w0), left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Mix.',w), left_pad('Recall',w), left_pad('Excl.',w), left_pad('F',w), left_pad('Len.Diff.',w), left_pad('Dist.',w), sep='')
 	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
 		print('-'*wt)
 		print('Length range %d-%d'%length_range,'(true deletions %d)'%true_indels[1])
@@ -1251,9 +1332,9 @@ def print_results_ascii(results, length_ranges, true_indel_counts, print_typing)
 			if print_typing:
 				deletion_ind_prec = typematrix_to_individual_rate(tool_stats.deletion_precision_types, False)
 				deletion_gt_prec = typematrix_to_individual_rate(tool_stats.deletion_precision_types, True)
-				print(right_pad(tool_stats.name,w0), left_pad(str(tool_stats.deletion_count),w), format_value(tool_stats.deletion_precision,w), format_value(deletion_ind_prec,w), format_value(deletion_gt_prec,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
+				print(right_pad(tool_stats.name,w0), left_pad(str(tool_stats.deletion_count),w), format_value(tool_stats.deletion_precision,w), format_value(tool_stats.deletion_mix_hits,w), format_value(deletion_ind_prec,w), format_value(deletion_gt_prec,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
 			else:
-				print(right_pad(tool_stats.name,w0), left_pad(str(tool_stats.deletion_count),w), format_value(tool_stats.deletion_precision,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
+				print(right_pad(tool_stats.name,w0), left_pad(str(tool_stats.deletion_count),w), format_value(tool_stats.deletion_precision,w), format_value(tool_stats.deletion_mix_hits,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
 	print('='*wt)
 
 def print_results_latex(results, length_ranges, true_indel_counts):
@@ -1265,9 +1346,9 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 	w = 14
 	print('\\section{Overall performance}')
 	print('\\subsection{Insertions}')
-	print('\\begin{longtable}{lrrrrrrr}')
+	print('\\begin{longtable}{lrrrrrrrr}')
 	print('\\hline')
-	print(' '*w0, left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Rec.',w), left_pad('Exc.',w), left_pad('F.',w), left_pad('$\Delta$Len.',w), left_pad('Dist.',w), sep=' & ', end='\\\\\n')
+	print(' '*w0, left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Mix.',w), left_pad('Rec.',w), left_pad('Exc.',w), left_pad('F.',w), left_pad('$\Delta$Len.',w), left_pad('Dist.',w), sep=' & ', end='\\\\\n')
 	print('\hline')
 	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
 		print('\\multicolumn{8}{l}{\\textbf{Length Range %d--%d}'%length_range, '(%s true insertions)}\\\\'%format(true_indels[0],',d'))
@@ -1279,6 +1360,7 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 				right_pad(tool_stats.name,w0),
 				right_pad(str(tool_stats.insertion_count), w),
 				format_value_tex(tool_stats.insertion_precision,w,best.insertion_precision),
+				format_value_tex(tool_stats.insertion_mix_hits,w,best.insertion_mix_hits),
 				format_value_tex(tool_stats.insertion_recall,w,best.insertion_recall),
 				format_value_tex(tool_stats.insertion_exclusivity,w,best.insertion_exclusivity),
 				format_value_tex(tool_stats.insertion_f,w,best.insertion_f),
@@ -1288,9 +1370,9 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 		print('\hline')
 	print('\\end{longtable}')
 	print('\\subsection{Deletions}')
-	print('\\begin{longtable}{lrrrrrrr}')
+	print('\\begin{longtable}{lrrrrrrrr}')
 	print('\\hline')
-	print(' '*w0, left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Rec.',w), left_pad('Exc.',w), left_pad('F.',w), left_pad('$\Delta$Len.',w), left_pad('Dist.',w), sep=' & ', end='\\\\\n')
+	print(' '*w0, left_pad('Abs.',w), left_pad('Prec.',w), left_pad('Mix.',w), left_pad('Rec.',w), left_pad('Exc.',w), left_pad('F.',w), left_pad('$\Delta$Len.',w), left_pad('Dist.',w), sep=' & ', end='\\\\\n')
 	print('\hline')
 	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
 		print('\\multicolumn{8}{l}{\\textbf{Length Range %d--%d}'%length_range, '(%s true deletions)}\\\\'%format(true_indels[1],',d'))
@@ -1302,6 +1384,7 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 				right_pad(tool_stats.name,w0),
 				right_pad(str(tool_stats.deletion_count), w),
 				format_value_tex(tool_stats.deletion_precision,w,best.deletion_precision),
+				format_value_tex(tool_stats.deletion_mix_hits,w,best.deletion_mix_hits),
 				format_value_tex(tool_stats.deletion_recall,w,best.deletion_recall),
 				format_value_tex(tool_stats.deletion_exclusivity,w,best.deletion_exclusivity),
 				format_value_tex(tool_stats.deletion_f,w,best.deletion_f),
@@ -1310,6 +1393,17 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 			sep=' & ', end='\\\\\n')
 		print('\hline')
 	print('\\end{longtable}')
+	print('\\subsection{Table Legend}')
+	print('\\begin{itemize}')
+	print('\\item \\textbf{Abs.:} \\emph{Absolute number} of predictions made in this length range')
+	print('\\item \\textbf{Prec.:} \\emph{Precision}, the percentage of predictions in that length range that match a true deletion/insertion.')
+	print('\\item \\textbf{Mix.:} Percentage of predictions that don\'t match a true insertion/deletion but a \\emph{mixed insertion/deletion event} of the same/similar effective length.')
+	print('\\item \\textbf{Rec.:} \\emph{Recall}, the percentage of true insertions/deletions in that length range that have been discovered.')
+	print('\\item \\textbf{Exc.:} \\emph{Exclusive calls}: percentage of true insertions/deletions that are \\emph{only} discovered by this tool.')
+	print('\\item \\textbf{F:} \\emph{$F$-Measure}: $2\cdot\mbox{precision}\cdot\mbox{recall}/(\mbox{precision}+\mbox{recall})$. This integrates precision and recall into one statistic.')
+	print('\\item \\textbf{$\Delta$Len.:} \\emph{Length difference}: average length difference between prediction and true insertion/deletion (averaged over all predictions that match a true annotation)')
+	print('\\item \\textbf{Dist.:} \\emph{Distance}: average center distance between prediction and true insertion/deletion (averaged over all predictions that match a true annotation)')
+	print('\\end{itemize}')
 
 def tag_to_str(tag):
 	if tag == None: return 'No Tag'
@@ -1323,7 +1417,7 @@ def print_tag_table(stats_list, variants0, variants1, all_tags0, all_tags1, titl
 			self.target_tags = defaultdict(int)
 	t = defaultdict(TagStatistics)
 	for v in stats_list:
-		coord1, coord2, var_type, from_tags = variants0.get(v.chromosome, v.index)
+		coord1, coord2, coord3, var_type, from_tags = variants0.get(v.chromosome, v.index)
 		for from_tag in from_tags:
 			t[from_tag].total += 1
 			if len(v.hits) == 0:
@@ -1332,7 +1426,7 @@ def print_tag_table(stats_list, variants0, variants1, all_tags0, all_tags1, titl
 				all_to_tags = set()
 				try:
 					for index,length_diff,offset in v.hits:
-						coord1, coord2, var_type, to_tags = variants1.get(v.chromosome, index)
+						coord1, coord2, coord3, var_type, to_tags = variants1.get(v.chromosome, index)
 						all_to_tags.update(to_tags)
 				except:
 					pass
@@ -1584,12 +1678,12 @@ def main():
 			def print_list(l):
 				for i in range(len(l[0])):
 					v = l[0][i]
-					coord1, coord2, var_type, tags = true_variants.get(v.chromosome, v.index)
+					coord1, coord2, coord3, var_type, tags = true_variants.get(v.chromosome, v.index)
 					print(v.chromosome, coord1+1, coord2, var_type, tag_string(tags), end='', file=f)
 					for tool_idx in range(len(tool_names)):
 						if l[tool_idx][i].is_hit():
 							index, length_diff, offset, typing = l[tool_idx][i].get_best_hit()
-							pred_coord1, pred_coord2, pred_var_type, pred_tags = predictions_lists[tool_idx].get(v.chromosome, index)
+							pred_coord1, pred_coord2, pred_coord3, pred_var_type, pred_tags = predictions_lists[tool_idx].get(v.chromosome, index)
 							print(' ',pred_coord1+1, ' ', pred_coord2, ' ', tag_string(pred_tags), sep='', end='', file=f)
 						else:
 							print(' -- -- --', end='', file=f)
@@ -1606,15 +1700,15 @@ def main():
 		for tool_idx, tool_name in enumerate(tool_names):
 			filename = options.toolwise_outfile.replace('{tool}', tool_name)
 			f = open(filename, 'w')
-			print('#{0}_chrom {0}_coord1 {0}_coord2 {0}_var_type {0}_tag true_coord1 true_coord2 true_tag'.format(tool_name), file=f)
+			print('#{0}_chrom {0}_coord1 {0}_coord2 {0}_var_type {0}_tag matches_mixed_event true_coord1 true_coord2 true_tag'.format(tool_name), file=f)
 			for range_idx, (min_length, max_length) in enumerate(length_ranges):
 				def print_list(l):
 					for v in l:
-						coord1, coord2, var_type, tags = predictions_lists[tool_idx].get(v.chromosome, v.index)
-						print(v.chromosome, coord1+1, coord2, var_type, tag_string(tags), end='', file=f)
+						coord1, coord2, coord3, var_type, tags = predictions_lists[tool_idx].get(v.chromosome, v.index)
+						print(v.chromosome, coord1+1, coord2, var_type, tag_string(tags), v.is_mix_hit(), end='', file=f)
 						if v.is_hit():
 							index, length_diff, offset, typing = v.get_best_hit()
-							true_coord1, true_coord2, true_var_type, true_tags = true_variants.get(v.chromosome, index)
+							true_coord1, true_coord2, true_coord3, true_var_type, true_tags = true_variants.get(v.chromosome, index)
 							print(' ',true_coord1+1, ' ', true_coord2, ' ', tag_string(true_tags), sep='', file=f)
 						else:
 							print(' -- -- --', file=f)
