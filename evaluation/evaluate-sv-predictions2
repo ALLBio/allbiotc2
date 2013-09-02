@@ -326,7 +326,7 @@ class VariationList:
 			if var_type != 'DEL': continue
 			if (tag!=None) and (not tag in tags) and not trio: continue
 			assert start <= end
-			length = end-start+1
+			length = end-start
 			if (min_length != None) and (length < min_length): continue
 			if (max_length != None) and (length > max_length): continue
 			events.append((start, 'S', 0, n))
@@ -334,7 +334,7 @@ class VariationList:
 		for n, (start, end, var_type, tags) in enumerate(another_list.variations[chromosome]):
 			if var_type != 'DEL': continue
 			assert start <= end
-			length = end-start+1
+			length = end-start
 			if difflength == None: difflength = 0
 			if (min_length != None) and (length < max(min_length - difflength,5)): continue
 			if (max_length != None) and (length > max_length + difflength): continue
@@ -377,7 +377,7 @@ class VariationList:
 			if var_type != 'DEL': continue
 			if (tag!=None) and (not tag in tags): continue
 			assert start < end
-			length = end-start+1
+			length = end-start
 			centerpoint = (start+end)/2
 			if (min_length != None) and (length < min_length): continue
 			if (max_length != None) and (length > max_length): continue
@@ -387,7 +387,7 @@ class VariationList:
 		for n, (start, end, var_type, tags) in enumerate(another_list.variations[chromosome]):
 			if var_type != 'DEL': continue
 			assert start < end
-			length = end-start+1
+			length = end-start
 			centerpoint = (start+end)/2
 			if difflength == None: difflength = 0
 			if (min_length != None) and (length < max(min_length - difflength,5)): continue
@@ -423,7 +423,7 @@ class VariationList:
 			overlaps = self.find_all_deletion_overlaps(another_list, chromosome, trio, min_length, max_length, offset, difflength, tag)
 			for i, (start0, end0, var_type0, tags0) in enumerate(self.variations[chromosome]):
 				if var_type0 != 'DEL': continue
-				length0 = end0 - start0 + 1
+				length0 = end0 - start0
 				if (min_length != None) and (length0 < min_length): continue
 				if (max_length != None) and (length0 > max_length): continue
 				varnumber += 1
@@ -441,7 +441,7 @@ class VariationList:
 						typing1 = index_from_type(tags1)
 					else:
 						typing1 = None
-					length1 = end1 - start1 + 1
+					length1 = end1 - start1
 					center1 = (start1 + end1) / 2
 					overlap = max(0, min(end0,end1) - max(start0,start1))
 					if mode == 'overlap':
