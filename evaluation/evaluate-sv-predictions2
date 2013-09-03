@@ -225,6 +225,7 @@ class VariationList:
 					info_fields['SVLEN'] = svlen
 				alt = '.'
 				ref = '.'
+
 			if (alt == '.') or (ref == '.'):
 				if not 'SVTYPE' in info_fields: continue
 				if not 'SVLEN' in info_fields: continue
@@ -238,6 +239,8 @@ class VariationList:
 					svlen = abs(int(info_fields['SVLEN']))
 					coord1 = int(fields[1]) - 1
 					coord2 = svlen
+				else:
+					continue
 			else:
 				if (not valid_dna_string(ref)) or (not valid_dna_string(alt)):
 					continue
@@ -1239,7 +1242,7 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 	"""Input: list with a lists of ToolStatistics for each length range."""
 	assert len(results) == len(length_ranges)
 	# width of first column
-	w0 = max(max(len(t.name) for t in results[0]) + 1, 4)
+	w0 = max(max(len(t.name.replace('.vcf','').replace('mean', 'm').replace('stddev', 'sd').replace('_','-')) for t in results[0]) + 1, 4)
 	# width of other columns
 	w = 14
 	print('\\section{Overall performance}')
@@ -1256,7 +1259,7 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 			best.improve(tool_stats)
 		for tool_stats in toolwise_results:
 			print(
-				right_pad(tool_stats.name,w0),
+				right_pad(tool_stats.name.replace('.vcf','').replace('mean', 'm').replace('stddev', 'sd').replace('_','-'),w0),
 				format_value_tex(tool_stats.insertion_precision,w,best.insertion_precision),
 				format_value_tex(tool_stats.insertion_recall,w,best.insertion_recall),
 				format_value_tex(tool_stats.insertion_exclusivity,w,best.insertion_exclusivity),
@@ -1471,7 +1474,8 @@ def main():
 		all_stats_lists.append(stats_lists)
 		results.append(aggregate_toolwise_statistics(stats_lists, tool_names))
 	if options.latex_output:
-		print('\\documentclass[12pt]{scrartcl}')
+		print('\\documentclass[10pt]{article}')
+		print('\\usepackage[margin=1.0in]{geometry}')
 		print('\\usepackage{longtable}')
 		print('\\usepackage{graphicx}')
 		print('\\usepackage{listings}')
