@@ -1343,7 +1343,7 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 	"""Input: list with a lists of ToolStatistics for each length range."""
 	assert len(results) == len(length_ranges)
 	# width of first column
-	w0 = max(max(len(t.name) for t in results[0]) + 1, 4)
+	w0 = max(max(len(t.name.replace('.vcf','').replace('mean', 'm').replace('stddev', 'sd').replace('_','-')) for t in results[0]) + 1, 4)
 	# width of other columns
 	w = 14
 	print('\\section{Overall performance}')
@@ -1359,7 +1359,7 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 			best.improve(tool_stats)
 		for tool_stats in toolwise_results:
 			print(
-				right_pad(tool_stats.name.replace('.vcf', '').replace('_','-'),w0),
+				right_pad(tool_stats.name.replace('.vcf','').replace('mean', 'm').replace('stddev', 'sd').replace('_','-'),w0),
 				right_pad(str(tool_stats.insertion_count), w),
 				format_value_tex(tool_stats.insertion_precision,w,best.insertion_precision),
 				format_value_tex(tool_stats.insertion_mix_hits,w,best.insertion_mix_hits),
@@ -1612,7 +1612,7 @@ def main():
 		print('\\usepackage{listings}')
 		print('\\lstset{breaklines=true,breakatwhitespace=false,basicstyle=\\ttfamily}')
 		print('\\begin{document}')
-		#print('\\scriptsize')
+		print('\\scriptsize')
 		print('\\section{Command line}')
 		print('\\begin{lstlisting}')
 		print(' '.join(sys.argv))
