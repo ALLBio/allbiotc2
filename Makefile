@@ -82,6 +82,9 @@ FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)))
 
+# settings for reporting
+EVALUATE_PREDICTIONS := python $(MAKEFILE_DIR)/evaluation/evaluate-sv-predictions2
+
 
 #########################
 ### Debug targets     ###
@@ -130,7 +133,7 @@ $(OUT_DIR):
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile REFERENCE=$(REFERENCE) $@
 
 %.pindel.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) PINDEL_DIR=/virdir/Scratch/software/pindel/pindel_0.2.5a1 $@
 
 %.delly.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/delly/Makefile REFERENCE=$(REFERENCE) $@
@@ -152,8 +155,8 @@ $(OUT_DIR):
 ## Create comparison report ##
 ##############################
 
-%.report.tex: $(VCF_OUTPUTS)
-	$(EVALUATE_PREDICTIONS) -L $(REFERENCE_VCF) $^ > comparison.tex
+%.report.tex: $(SV_OUTPUT)
+	$(EVALUATE_PREDICTIONS) -L $(REFERENCE_VCF) $^ > $@
 
 %.report.pdf: %.report.tex
 	pdflatex $^ && pdflatex $^
