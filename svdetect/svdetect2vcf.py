@@ -28,10 +28,10 @@ chr_type        SV_type BAL_type        chromosome1     start1-end1     average_
 INTRA   SMALL_DUPLI     UNBAL   chr3    13590505-13591371       62      chr3    13590507-13591376       22222   99%     100%    100%    0.999   13591371-13591141       13590740-13590507
 INTRA   SMALL_DUPLI     UNBAL   chr3    13591435-13592304       60      chr3    13591439-13592306       21852   99%     100%    100%    1.000   13592304-13592071       13591670-13591439
 """
-regex = r"^(INTRA|INTER)\t(?P<type>[\w\_]+)\t(?P<balance>[\w]+)\t(?P<chromosome>[\w\d]+)\t(?P<start>[\d]+)-(?P<end>[\d]+)"
-
 
 class SV2VCF(object):
+    regex = r"^(INTRA|INTER)\t(?P<type>[\w\_]+)\t(?P<balance>[\w]+)\t(?P<chromosome>[\w\d]+)\t(?P<start>[\d]+)-(?P<end>[\d]+)\t(?P<avg_dist>[\d]+)\t(?P<chromosome2>[\w\d]+)\t(?P<start2>[\d]+)-(?P<end2>[\d]+)"
+
     def __init__( self, svfile, reference ):
         self.readFasta( reference )
     
@@ -88,28 +88,42 @@ class SV2VCF(object):
         """
         with open(sFile,'r') as fd:
             # res = re.findall( r"^[\d]+\t(?P<type>[\w]+)[\w\d\" ]+\t", fd.read(), re.I | re.M )
-            for res in re.finditer( regex, fd.read(), re.I | re.M ):
+            for res in re.finditer( self.regex, fd.read(), re.I | re.M ):
                 infodict = {
                     'id': '.',
                     'chromosome': res.group('chromosome').replace('chr',''),
-                    'refbases': self.getrefbase( res.group('chromosome'), res.group('start'), res.group('end')),
-                    'start': int( res.group('start') ),
-                    'end': int( res.group('end') ),
+                    'refbases': self.getrefbase( res.group('chromosome'), res.group('start'), res.group('start2')),
+                    'start': int( res.group('end') ),
+                    'end': int( res.group('start2') ),
                     'quality': '.',
                     'filter': 'PASS',
                 }
                 altbases = '.'
                 svtype = self.svtype( res.group('type') )
-                svend = int( res.group('end') )
+                svend = int( res.group('start2') )
                 SVLEN=0
+                
+                real_start = 'end'
+                real_end = 'start2'
+
+#               This combination doesn't work
+#                real_start = 'start'
+#                real_end = 'end2'
+                
+                if svtype == '.':
+                    continue
+                    # debug other SV types
+#                   print res.groups()
+
                 if svtype == 'DEL':
-                    SVLEN = ( int(res.group('end')) - int(res.group('start')) ) * -1
+                    SVLEN = ( int(res.group(real_end)) - int(res.group(real_start)) ) * -1
                     SVLEN -= 1
                     altbases = infodict['refbases'][0:1]
                 elif svtype == 'INS':
                     # in case of insertions
-                    svend = res.group('start')
-                    SVLEN = infodict['end'] - infodict['start']
+                    # with insertions, the svend is the start of the breakpoint
+                    svend = res.group(real_start)
+                    SVLEN = infodict[real_end] - infodict[real_start]
                     altbases = abs(SVLEN) * "N"
 
                 infodict.update({
@@ -123,10 +137,6 @@ class SV2VCF(object):
                     'svlen': SVLEN,
                     'svtype': svtype,
                 }
-                if svtype == '.':
-                    continue
-                    # debug other SV types
-#                   print res.groups()
 #                output = "%(chromosome)s\t%(start)s\t%(id)s\t%(refbases)s\t%(altbases)s\t%(quality)s\t%(filter)s" % infodict
 #                output += "\tPROGRAM=%(program)s;END=%(end)s;DP=%(supports)s;SVLEN=%(svlen)s;SVTYPE=%(svtype)s" % infofields
                 output = "%(chromosome)s\t%(start)s\t.\t.\t.\t%(quality)s\t%(filter)s" % infodict
