@@ -88,13 +88,19 @@ class SV2VCF(object):
         """
         with open(sFile,'r') as fd:
             # res = re.findall( r"^[\d]+\t(?P<type>[\w]+)[\w\d\" ]+\t", fd.read(), re.I | re.M )
-            for res in re.finditer( self.regex, fd.read(), re.I | re.M ):
+            for res in re.finditer( self.regex, fd.read(), re.I | re.M ):                
+                real_start = 'end'
+                real_end = 'start2'
+
+                # real_start = 'start'
+                # real_end = 'end2'
+
                 infodict = {
                     'id': '.',
                     'chromosome': res.group('chromosome').replace('chr',''),
                     'refbases': self.getrefbase( res.group('chromosome'), res.group('start'), res.group('start2')),
-                    'start': int( res.group('end') ),
-                    'end': int( res.group('start2') ),
+                    'start': int( res.group(real_start) ),
+                    'end': int( res.group(real_end) ),
                     'quality': '.',
                     'filter': 'PASS',
                 }
@@ -102,13 +108,7 @@ class SV2VCF(object):
                 svtype = self.svtype( res.group('type') )
                 svend = int( res.group('start2') )
                 SVLEN=0
-                
-                real_start = 'end'
-                real_end = 'start2'
 
-#               This combination doesn't work
-#                real_start = 'start'
-#                real_end = 'end2'
                 
                 if svtype == '.':
                     continue
