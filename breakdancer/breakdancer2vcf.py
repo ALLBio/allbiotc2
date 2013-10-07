@@ -15,7 +15,6 @@ import sys
 
 def main(tsvfile, vcffile):
     '''
-    
     :param tsvfile: filename of input file.tsv
     :type tsvfile: string
     :param vcffile: filename of output file.vcf
@@ -32,6 +31,7 @@ def main(tsvfile, vcffile):
     # Quick output
     with open(vcffile) as reader:
         print reader.read(1000)
+
 
 def _parse_tsvfile(readable):
     '''
@@ -79,6 +79,7 @@ _tsv_fields = ('Chr1', 'Pos1', 'Orientation1',
 
 _vcf_fields = ('CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUALITY', 'FILTER', 'INFO')
 
+
 def _format_vcffile(dictreader, vcffile):
     '''
     Create a pseudo .vcf file based on values read from DictReader instance.
@@ -93,8 +94,11 @@ def _format_vcffile(dictreader, vcffile):
             CHROM = line['Chr1']
             # TODO Figure out whether we have zero or one based positioning
             POS = int(line['Pos1'])
+            SVEND = int(line['Pos2'])
             INFO = 'PROGRAM=breakdancer;SVTYPE={};SVLEN={}'.format(line['Type'],
                                                                    0 - int(line['Size']))
+            if line['Type'] not in ['CTX']:
+                INFO += ";SVEND={}".format(SVEND)
 
             # Create record
             output = '{}\t{}\t.\t.\t.\t.\tPASS\t{}\n'.format(CHROM, POS, INFO)
