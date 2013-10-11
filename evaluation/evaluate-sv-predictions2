@@ -1652,8 +1652,8 @@ def main():
 			print('\\section{Prediction accuracy}')
 		for tool_idx, (tool_name, predictions) in enumerate(zip(tool_names, predictions_lists)):
 			if options.latex_output: print('\\subsection{%s}'%tool_name)
-			predictions_tags = list(predictions.get_all_tags())
-			predictions_tags.sort()
+#			predictions_tags = list(predictions.get_all_tags())
+#			predictions_tags.sort()
 			for range_idx, (min_length, max_length) in enumerate(length_ranges):
 				ins_prec_list, ins_recall_list, del_prec_list, del_recall_list = all_stats_lists[range_idx][tool_idx]
 				del_accuracy_stats = extract_accuracy_stats(del_prec_list)
