@@ -67,13 +67,22 @@ REFERENCE_BWA = $(REFERENCE_DIR)/bwa/reference.fa
 REFERENCE_BOWTIE2 = $(REFERENCE_DIR)/bowtie2/reference
 REFERENCE := $(REFERENCE_DIR)/reference.fa
 
+# meerkat reference files
+DATA_REPEAT_MASKER := $(REFERENCE_DIR)/db/hg19/repeatMask
+DATA_REFERENCE := $(REFERENCE_DIR)/#db/hg19_fasta
+DATA_THREADS := 8
+DATA_BWA_INDEXED_REF:= $(REFERENCE_DIR)/bwa/reference.fa
+DATA_FASTA_INDEX := $(REFERENCE_DIR)/reference.fa.fai
+DATA_HEADERFILE := $(REFERENCE_DIR)/db/headerfile
+
+
 ##########################
 ### Input/Output Files ###
 ##########################
 
 # General settings
-PEA_MARK := _1
-PEB_MARK := _2
+PEA_MARK := .1
+PEB_MARK := .2
 FASTQ_EXTENSION := fastq
 
 # Set the format of the quality scores in the input files (sanger or solexa).
@@ -98,21 +107,8 @@ OUT_DIR := $(ROOT_OUT_DIR)
 # reference VCF used in this project
 REFERENCE_VCF :=
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# tool versions
+CLEVER_VERSION := -sv
 
 
 
