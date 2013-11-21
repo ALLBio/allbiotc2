@@ -5,4 +5,4 @@ include $(MAKEFILE_DIR)/../conf.mk
 
 %.fastqc: %.fastq
 	mkdir -p $@;
-	fastqc -format fastq -o $@ $^
+	$(FASTQC) -format fastq -o $@ $^

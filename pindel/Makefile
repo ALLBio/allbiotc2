@@ -65,6 +65,7 @@ all: $(OUT)
 
 %.pindel.vcf: %.pindel/pindel_res
 	$(PINDEL2VCF) -P $< -r $(REFERENCE) -R benchmarkgenome -d $(shell date +'%Y%m%d%H%M%S') -v $@
+	cp $@ ../
 
 .PHONY: install
 ## Tool installation

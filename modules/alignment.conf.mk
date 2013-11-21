@@ -3,6 +3,6 @@
 ALIGNER = bwa
 
 # General settings
-PEA_MARK := _1
-PEB_MARK := _2
+PEA_MARK := .1
+PEB_MARK := .2
 FASTQ_EXTENSION := fastq

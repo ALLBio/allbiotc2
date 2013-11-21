@@ -31,7 +31,7 @@ include $(MAKEFILE_DIR)/../conf.mk
 # GASV
 GASV_DIR := $(PROGRAMS_DIR)/gasv
 BAM2GASV := $(GASV_DIR)/bin/BAMToGASV.jar
-GASV := $(GASV_DIR)/bin/GASV.jar
+GASV := ../$(GASV_DIR)/bin/GASV.jar
 JAVA := java -Xms512m -Xmx2048m -jar
 
 GASVProHQ := $(GASV_DIR)/bin/GASVPro-HQ.sh
@@ -55,7 +55,9 @@ all: $(OUT)
 	$(JAVA) $(BAM2GASV) $< -OUTPUT_PREFIX $(dir $@)sample
 
 %.gasv/sample.gasv.in.clusters: %.gasv/sample.gasv.in
-	cd $(dir $@);$(JAVA) $(GASV) --batch $?
+	cd $(dir $@);pwd;$(JAVA) $(GASV) --batch $?
 
 %.gasv.vcf: %.gasv/sample.gasv.in.clusters
 	$(GASV2VCF) $< $@ BWA
+	cp $@ ../
+

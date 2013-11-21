@@ -1,4 +1,5 @@
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+$(info $(MAKEFILE_DIR))
 include $(MAKEFILE_DIR)/alignment.conf.mk
 # override defaults using conf.mk (which includes project.conf.mk)
 include $(MAKEFILE_DIR)/../conf.mk
