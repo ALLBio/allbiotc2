@@ -1,0 +1,93 @@
+# VARIABLES:
+
+THIS_DIR = $(shell pwd)
+
+MEERKAT_FOLDER := /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/software/Meerkat
+MEERKAT_SCRIPTS := $(MEERKAT_FOLDER)/scripts
+MEERKAT_BINS := $(MEERKAT_FOLDER)/bin
+MEERKAT_SRC := $(MEERKAT_FOLDER)/src
+MEERKAT_BAMTOOLSLIB := $(MEERKAT_SRC)/mybamtools/lib
+
+TESTDATA_FOLDER := /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data
+TESTDATA_BAM := $(TESTDATA_FOLDER)/bam
+$(info $(TESTDATA_BAM))
+TESTDATA_REPEAT_MASKER := $(TESTDATA_FOLDER)/db/hg19/repeatMask
+TESTDATA_REFERENCE := $(TESTDATA_FOLDER)/db/hg19_fasta
+TESTDATA_THREADS := 8
+TESTDATA_BWA_INDEXED_REF:= $(TESTDATA_FOLDER)/db/hg19_bwa_idx/reference.fa
+TESTDATA_FASTA_INDEX := $(TESTDATA_FOLDER)/db/hg19/reference.fa.fai
+TESTDATA_REF_GENE := $(TESTDATA_FOLDER)/db/hg19/refGene.txt
+TESTDATA_HEADERFILE := $(TESTDATA_FOLDER)/db/headerfile
+
+TARGET_BED_FILE := $(TESTDATA_FOLDER)/db/search_sites_indels.bed
+
+
+INPUT_BAMEXT := sort.bam
+
+SAMPLE := $(shell ls -d $(TESTDATA_BAM)/*.$(INPUT_BAMEXT) | sed -e 's/.$(INPUT_BAMEXT)//g')
+MK_RAW_PREDICTIONS := $(addsuffix .inter.refined.typ.sorted, $(SAMPLE)) $(addsuffix .inter.refined.typ.sorted, $(SAMPLE))
+MK_FLAGSTAT := $(addsuffix .sort.flagstat, $(SAMPLE))
+MK_REPORT := $(addsuffix .sort.report, $(SAMPLE))
+MK_COVERAGE_PDF := $(addsuffix .sort.pdf, $(SAMPLE))
+MK_FUSIONS := $(addsuffix .sort.fusions, $(SAMPLE))
+MK_VCF := $(addsuffix .sort.raw.vcf, $(SAMPLE)) $(addsuffix .sort.target.vcf, $(SAMPLE)) $(addsuffix .sort.target.inverted.vcf, $(SAMPLE)) $(addsuffix .sort.target.inverted.filtered.vcf, $(SAMPLE))
+MK_VARIANTS := $(addsuffix .sort.variants, $(SAMPLE)) $(addsuffix .sort.filtered.variants, $(SAMPLE))
+
+
+# PERLLIB := /home/wyleung/.perl/Bio-SamTools-1.38/lib
+#REPEAT_MASKER := $(THIS_DIR)/../db/hg19/repeatMask
+#REFERENCE := $(THIS_DIR)/../db/hg19_fasta
+#THREADS := 8
+#BWA_INDEXED_REF := $(THIS_DIR)/../db/hg19_bwa_idx/reference.fa
+#FASTA_INDEX := $(THIS_DIR)/../db/hg19/reference.fa.fai
+#REF_GENE := $(THIS_DIR)/../db/hg19/refGene.txt
+#/data/DIV5/SASC/wyleung/Meerkatv.0.176/src/bamreader
+
+.ONESHELL:
+.DELETE_ON_ERROR:
+
+# RECEPIES
+all: $(MK_FUSIONS) $(MK_VCF) $(MK_VARIANTS) $(MK_COVERAGE_PDF) $(MK_RAW_PREDICTIONS) $(MK_FLAGSTAT) $(MK_REPORT)
+
+%.sort.pdf: %.$(INPUT_BAMEXT)
+	export LD_LIBRARY_PATH=$(MEERKAT_BAMTOOLSLIB); perl $(MEERKAT_SCRIPTS)/pre_process.pl -b $< -I $(TESTDATA_BWA_INDEXED_REF) -A $(TESTDATA_FASTA_INDEX) -t $(TESTDATA_THREADS) -S /usr/local/bin/
+
+%.inter.refined.typ.sorted: %.$(INPUT_BAMEXT) %.sort.pdf
+	(SGE_RREQ="-now no -pe BWA 8" export LD_LIBRARY_PATH=$(MEERKAT_BAMTOOLSLIB); perl $(MEERKAT_SCRIPTS)/meerkat.pl -b $< -F $(TESTDATA_REFERENCE) -t $(TESTDATA_THREADS) -B /usr/bin/)
+
+%.intra.refined.typ.sorted:
+	@
+
+%.sort.variants: %.$(INPUT_BAMEXT) %.inter.refined.typ.sorted
+	perl $(MEERKAT_SCRIPTS)/mechanism.pl -b $< -R $(TESTDATA_REPEAT_MASKER)
+
+%.sort.filtered.variants: %.sort.variants %.$(INPUT_BAMEXT)
+	perl $(MEERKAT_SCRIPTS)/somatic_sv.pl -i $< -o $@ -B $(lastword $^) -R $(TESTDATA_REPEAT_MASKER)
+
+%.sort.raw.vcf: %.$(INPUT_BAMEXT) %.sort.filtered.variants
+	perl $(MEERKAT_SCRIPTS)/meerkat2vcf.pl -i $(lastword $^) -o $@ -H $(TESTDATA_HEADERFILE) -F $(TESTDATA_REFERENCE)
+
+%.sort.fusions: %.sort.filtered.variants
+	perl $(MEERKAT_SCRIPTS)/fusions.pl -i $< -G $(TESTDATA_REF_GENE)
+
+%.sort.target.vcf: %.sort.raw.vcf
+	bedtools intersect -a $< -b $(TARGET_BED_FILE) | sort -u | cat $(TESTDATA_HEADERFILE) - > $@
+
+%.sort.target.inverted.vcf: %.sort.raw.vcf
+	bedtools intersect -a $< -b $(TARGET_BED_FILE) -v | sort -u | cat $(TESTDATA_HEADERFILE) - > $@
+
+%.sort.target.inverted.filtered.vcf: %.sort.target.inverted.vcf
+	awk '{split($11,ary,/:/); if(ary[2]>=9) print}' $< > $@
+
+%.sort.flagstat: %.$(INPUT_BAMEXT)
+	samtools flagstat $< > $@
+
+%.sort.report: %.sort.variants %.sort.flagstat
+	python $(TESTDATA_FOLDER)/procesReportData.py $(lastword $^) $< $@
+
+
+
+
+.PHONY: clean
+clean:
+	rm *.log *.gz *.rdist *.err *.pdf *.isinfo *.sai *.cl.* *.raw *.clusters *.discord *.mp.* *.bp.* *.sr.* 

@@ -1,0 +1,782 @@
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 3.20 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz
+[main] Real time: 50.921 sec; CPU: 8.961 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 2.87 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 17.982 sec; CPU: 6.732 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (688, 1026, 1379)
+[infer_isize] low and high boundaries: 75 and 2761 for estimating avg and std
+[infer_isize] inferred external isize from 1451 pairs: 1110.475 +/- 568.881
+[infer_isize] skewness: 1.029; kurtosis: 0.580; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 4894 (6.65 sigma)
+[bwa_sai2sam_pe_core] time elapses: 2.37 sec
+[bwa_sai2sam_pe_core] changing coordinates of 343 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 112 out of 956 Q17 singletons are mated.
+[bwa_paired_sw] 25 out of 2114 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.46 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.01 sec
+[bwa_sai2sam_pe_core] print alignments... 0.04 sec
+[bwa_sai2sam_pe_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -P -N 100 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 42.684 sec; CPU: 10.533 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.15 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz
+[main] Real time: 0.070 sec; CPU: 0.160 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.23 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.070 sec; CPU: 0.244 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (222, 378, 412)
+[infer_isize] low and high boundaries: 20 and 792 for estimating avg and std
+[infer_isize] inferred external isize from 1802 pairs: 345.645 +/- 112.894
+[infer_isize] skewness: 0.939; kurtosis: 2.305; ap_prior: 7.14e-05
+[infer_isize] inferred maximum insert size: 961 (5.45 sigma)
+[bwa_sai2sam_pe_core] time elapses: 0.04 sec
+[bwa_sai2sam_pe_core] changing coordinates of 19 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 0 out of 813 Q17 singletons are mated.
+[bwa_paired_sw] 0 out of 2775 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.13 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.00 sec
+[bwa_sai2sam_pe_core] print alignments... 0.03 sec
+[bwa_sai2sam_pe_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -a 140 -P -N 20 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.263 sec; CPU: 0.212 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 3.17 sec
+[bwa_aln_core] write to the disk... 0.01 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz
+[main] Real time: 8.744 sec; CPU: 6.860 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 2.96 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 4.092 sec; CPU: 6.636 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (688, 1026, 1379)
+[infer_isize] low and high boundaries: 75 and 2761 for estimating avg and std
+[infer_isize] inferred external isize from 1451 pairs: 1110.475 +/- 568.881
+[infer_isize] skewness: 1.029; kurtosis: 0.580; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 4894 (6.65 sigma)
+[bwa_sai2sam_pe_core] time elapses: 2.39 sec
+[bwa_sai2sam_pe_core] changing coordinates of 343 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 112 out of 956 Q17 singletons are mated.
+[bwa_paired_sw] 25 out of 2114 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.46 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.00 sec
+[bwa_sai2sam_pe_core] print alignments... 0.03 sec
+[bwa_sai2sam_pe_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -P -N 100 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 55.734 sec; CPU: 9.485 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.14 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz
+[main] Real time: 0.058 sec; CPU: 0.160 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.23 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.062 sec; CPU: 0.244 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (222, 378, 412)
+[infer_isize] low and high boundaries: 20 and 792 for estimating avg and std
+[infer_isize] inferred external isize from 1802 pairs: 345.645 +/- 112.894
+[infer_isize] skewness: 0.939; kurtosis: 2.305; ap_prior: 7.14e-05
+[infer_isize] inferred maximum insert size: 961 (5.45 sigma)
+[bwa_sai2sam_pe_core] time elapses: 0.05 sec
+[bwa_sai2sam_pe_core] changing coordinates of 19 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 0 out of 813 Q17 singletons are mated.
+[bwa_paired_sw] 0 out of 2775 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.12 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.01 sec
+[bwa_sai2sam_pe_core] print alignments... 0.02 sec
+[bwa_sai2sam_pe_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -a 140 -P -N 20 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.247 sec; CPU: 0.212 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 3.24 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz
+[main] Real time: 4.141 sec; CPU: 6.892 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 2.97 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 4.113 sec; CPU: 6.656 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (688, 1026, 1379)
+[infer_isize] low and high boundaries: 75 and 2761 for estimating avg and std
+[infer_isize] inferred external isize from 1451 pairs: 1110.475 +/- 568.881
+[infer_isize] skewness: 1.029; kurtosis: 0.580; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 4894 (6.65 sigma)
+[bwa_sai2sam_pe_core] time elapses: 2.36 sec
+[bwa_sai2sam_pe_core] changing coordinates of 343 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 112 out of 956 Q17 singletons are mated.
+[bwa_paired_sw] 25 out of 2114 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.45 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.01 sec
+[bwa_sai2sam_pe_core] print alignments... 0.03 sec
+[bwa_sai2sam_pe_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -P -N 100 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 9.315 sec; CPU: 9.253 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.15 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz
+[main] Real time: 0.071 sec; CPU: 0.160 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.23 sec
+[bwa_aln_core] write to the disk... 0.01 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.075 sec; CPU: 0.244 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (222, 378, 412)
+[infer_isize] low and high boundaries: 20 and 792 for estimating avg and std
+[infer_isize] inferred external isize from 1802 pairs: 345.645 +/- 112.894
+[infer_isize] skewness: 0.939; kurtosis: 2.305; ap_prior: 7.14e-05
+[infer_isize] inferred maximum insert size: 961 (5.45 sigma)
+[bwa_sai2sam_pe_core] time elapses: 0.04 sec
+[bwa_sai2sam_pe_core] changing coordinates of 19 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 0 out of 813 Q17 singletons are mated.
+[bwa_paired_sw] 0 out of 2775 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.13 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.00 sec
+[bwa_sai2sam_pe_core] print alignments... 0.02 sec
+[bwa_sai2sam_pe_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -a 140 -P -N 20 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.276 sec; CPU: 0.208 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 2.77 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz
+[main] Real time: 4.403 sec; CPU: 6.528 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 2.58 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 4.217 sec; CPU: 6.188 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (688, 1026, 1379)
+[infer_isize] low and high boundaries: 75 and 2761 for estimating avg and std
+[infer_isize] inferred external isize from 1451 pairs: 1110.475 +/- 568.881
+[infer_isize] skewness: 1.029; kurtosis: 0.580; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 4894 (6.65 sigma)
+[bwa_sai2sam_pe_core] time elapses: 2.43 sec
+[bwa_sai2sam_pe_core] changing coordinates of 343 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 112 out of 956 Q17 singletons are mated.
+[bwa_paired_sw] 25 out of 2114 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.46 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.01 sec
+[bwa_sai2sam_pe_core] print alignments... 0.04 sec
+[bwa_sai2sam_pe_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -P -N 100 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 9.779 sec; CPU: 9.597 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.15 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz
+[main] Real time: 0.053 sec; CPU: 0.160 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.23 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.067 sec; CPU: 0.244 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (222, 378, 412)
+[infer_isize] low and high boundaries: 20 and 792 for estimating avg and std
+[infer_isize] inferred external isize from 1802 pairs: 345.645 +/- 112.894
+[infer_isize] skewness: 0.939; kurtosis: 2.305; ap_prior: 7.14e-05
+[infer_isize] inferred maximum insert size: 961 (5.45 sigma)
+[bwa_sai2sam_pe_core] time elapses: 0.05 sec
+[bwa_sai2sam_pe_core] changing coordinates of 19 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 0 out of 813 Q17 singletons are mated.
+[bwa_paired_sw] 0 out of 2775 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.13 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.00 sec
+[bwa_sai2sam_pe_core] print alignments... 0.03 sec
+[bwa_sai2sam_pe_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -a 140 -P -N 20 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.266 sec; CPU: 0.220 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 3.24 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz
+[main] Real time: 5.705 sec; CPU: 6.996 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 2.97 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 4.096 sec; CPU: 6.648 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (688, 1026, 1379)
+[infer_isize] low and high boundaries: 75 and 2761 for estimating avg and std
+[infer_isize] inferred external isize from 1451 pairs: 1110.475 +/- 568.881
+[infer_isize] skewness: 1.029; kurtosis: 0.580; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 4894 (6.65 sigma)
+[bwa_sai2sam_pe_core] time elapses: 2.37 sec
+[bwa_sai2sam_pe_core] changing coordinates of 343 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 112 out of 956 Q17 singletons are mated.
+[bwa_paired_sw] 25 out of 2114 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.46 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.00 sec
+[bwa_sai2sam_pe_core] print alignments... 0.04 sec
+[bwa_sai2sam_pe_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -P -N 100 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 12.341 sec; CPU: 9.285 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.15 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz
+[main] Real time: 0.041 sec; CPU: 0.160 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.23 sec
+[bwa_aln_core] write to the disk... 0.01 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.059 sec; CPU: 0.244 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (222, 378, 412)
+[infer_isize] low and high boundaries: 20 and 792 for estimating avg and std
+[infer_isize] inferred external isize from 1802 pairs: 345.645 +/- 112.894
+[infer_isize] skewness: 0.939; kurtosis: 2.305; ap_prior: 7.14e-05
+[infer_isize] inferred maximum insert size: 961 (5.45 sigma)
+[bwa_sai2sam_pe_core] time elapses: 0.04 sec
+[bwa_sai2sam_pe_core] changing coordinates of 19 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 0 out of 813 Q17 singletons are mated.
+[bwa_paired_sw] 0 out of 2775 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.12 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.01 sec
+[bwa_sai2sam_pe_core] print alignments... 0.03 sec
+[bwa_sai2sam_pe_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -a 140 -P -N 20 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.250 sec; CPU: 0.212 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 3.18 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz
+[main] Real time: 37.239 sec; CPU: 8.773 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 2.84 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 6.150 sec; CPU: 7.016 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (688, 1026, 1379)
+[infer_isize] low and high boundaries: 75 and 2761 for estimating avg and std
+[infer_isize] inferred external isize from 1451 pairs: 1110.475 +/- 568.881
+[infer_isize] skewness: 1.029; kurtosis: 0.580; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 4894 (6.65 sigma)
+[bwa_sai2sam_pe_core] time elapses: 2.60 sec
+[bwa_sai2sam_pe_core] changing coordinates of 343 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 112 out of 956 Q17 singletons are mated.
+[bwa_paired_sw] 25 out of 2114 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.45 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.01 sec
+[bwa_sai2sam_pe_core] print alignments... 0.05 sec
+[bwa_sai2sam_pe_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -P -N 100 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 36.966 sec; CPU: 11.433 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.15 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz
+[main] Real time: 0.052 sec; CPU: 0.164 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.23 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.068 sec; CPU: 0.248 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (222, 378, 412)
+[infer_isize] low and high boundaries: 20 and 792 for estimating avg and std
+[infer_isize] inferred external isize from 1802 pairs: 345.645 +/- 112.894
+[infer_isize] skewness: 0.939; kurtosis: 2.305; ap_prior: 7.14e-05
+[infer_isize] inferred maximum insert size: 961 (5.45 sigma)
+[bwa_sai2sam_pe_core] time elapses: 0.04 sec
+[bwa_sai2sam_pe_core] changing coordinates of 19 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 0 out of 813 Q17 singletons are mated.
+[bwa_paired_sw] 0 out of 2775 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.13 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.00 sec
+[bwa_sai2sam_pe_core] print alignments... 0.03 sec
+[bwa_sai2sam_pe_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -a 140 -P -N 20 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.251 sec; CPU: 0.216 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 3.06 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz
+[main] Real time: 4.413 sec; CPU: 6.952 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 2.89 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 4.684 sec; CPU: 7.056 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (688, 1026, 1379)
+[infer_isize] low and high boundaries: 75 and 2761 for estimating avg and std
+[infer_isize] inferred external isize from 1451 pairs: 1110.475 +/- 568.881
+[infer_isize] skewness: 1.029; kurtosis: 0.580; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 4894 (6.65 sigma)
+[bwa_sai2sam_pe_core] time elapses: 2.52 sec
+[bwa_sai2sam_pe_core] changing coordinates of 343 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 112 out of 956 Q17 singletons are mated.
+[bwa_paired_sw] 25 out of 2114 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.46 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.01 sec
+[bwa_sai2sam_pe_core] print alignments... 0.03 sec
+[bwa_sai2sam_pe_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -P -N 100 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 32.140 sec; CPU: 11.197 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.16 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz
+[main] Real time: 0.053 sec; CPU: 0.164 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.24 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.069 sec; CPU: 0.248 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (222, 378, 412)
+[infer_isize] low and high boundaries: 20 and 792 for estimating avg and std
+[infer_isize] inferred external isize from 1802 pairs: 345.645 +/- 112.894
+[infer_isize] skewness: 0.939; kurtosis: 2.305; ap_prior: 7.14e-05
+[infer_isize] inferred maximum insert size: 961 (5.45 sigma)
+[bwa_sai2sam_pe_core] time elapses: 0.05 sec
+[bwa_sai2sam_pe_core] changing coordinates of 19 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 0 out of 813 Q17 singletons are mated.
+[bwa_paired_sw] 0 out of 2775 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.17 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.00 sec
+[bwa_sai2sam_pe_core] print alignments... 0.04 sec
+[bwa_sai2sam_pe_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -a 140 -P -N 20 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.348 sec; CPU: 0.272 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.16 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz
+[main] Real time: 0.046 sec; CPU: 0.164 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.24 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.066 sec; CPU: 0.252 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (222, 378, 412)
+[infer_isize] low and high boundaries: 20 and 792 for estimating avg and std
+[infer_isize] inferred external isize from 1802 pairs: 345.645 +/- 112.894
+[infer_isize] skewness: 0.939; kurtosis: 2.305; ap_prior: 7.14e-05
+[infer_isize] inferred maximum insert size: 961 (5.45 sigma)
+[bwa_sai2sam_pe_core] time elapses: 0.05 sec
+[bwa_sai2sam_pe_core] changing coordinates of 19 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 0 out of 813 Q17 singletons are mated.
+[bwa_paired_sw] 0 out of 2775 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.12 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.01 sec
+[bwa_sai2sam_pe_core] print alignments... 0.02 sec
+[bwa_sai2sam_pe_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -a 140 -P -N 20 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.259 sec; CPU: 0.216 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 3.28 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz
+[main] Real time: 46.858 sec; CPU: 8.833 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 2.95 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 40 -k 2 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 15.841 sec; CPU: 6.920 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (688, 1026, 1379)
+[infer_isize] low and high boundaries: 75 and 2761 for estimating avg and std
+[infer_isize] inferred external isize from 1451 pairs: 1110.475 +/- 568.881
+[infer_isize] skewness: 1.029; kurtosis: 0.580; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 4894 (6.65 sigma)
+[bwa_sai2sam_pe_core] time elapses: 2.37 sec
+[bwa_sai2sam_pe_core] changing coordinates of 343 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 112 out of 956 Q17 singletons are mated.
+[bwa_paired_sw] 25 out of 2114 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.45 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.01 sec
+[bwa_sai2sam_pe_core] print alignments... 0.03 sec
+[bwa_sai2sam_pe_core] 5297 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -P -N 100 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/db/hg19_bwa_idx/reference.fa /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.cl_2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort/none_2.fq.gz
+[main] Real time: 41.810 sec; CPU: 11.441 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.15 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz
+[main] Real time: 0.036 sec; CPU: 0.160 sec
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 0.23 sec
+[bwa_aln_core] write to the disk... 0.00 sec
+[bwa_aln_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa aln -l 20 -k 1 -t 8 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.066 sec; CPU: 0.248 sec
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (222, 378, 412)
+[infer_isize] low and high boundaries: 20 and 792 for estimating avg and std
+[infer_isize] inferred external isize from 1802 pairs: 345.645 +/- 112.894
+[infer_isize] skewness: 0.939; kurtosis: 2.305; ap_prior: 7.14e-05
+[infer_isize] inferred maximum insert size: 961 (5.45 sigma)
+[bwa_sai2sam_pe_core] time elapses: 0.04 sec
+[bwa_sai2sam_pe_core] changing coordinates of 19 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 0 out of 813 Q17 singletons are mated.
+[bwa_paired_sw] 0 out of 2775 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.13 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.00 sec
+[bwa_sai2sam_pe_core] print alignments... 0.03 sec
+[bwa_sai2sam_pe_core] 4529 sequences have been processed.
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa sampe -a 140 -P -N 20 /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.bp.fasta /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.sai /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.1.fq.gz /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/meerkat_test_data/bam/example.sort.sr.2.fq.gz
+[main] Real time: 0.297 sec; CPU: 0.224 sec
