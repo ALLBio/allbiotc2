@@ -1557,6 +1557,8 @@ def main():
 			chromosomes.update(predictions.get_chromosomes())
 	if options.tool_names == None:
 		tool_names = args[1:]
+		for n,name in enumerate(tool_names):
+		  	tool_names[n] = os.path.basename(name)
 	else:
 		tool_names = options.tool_names.strip().split(',')
 		if len(tool_names) != len(predictions_lists):
