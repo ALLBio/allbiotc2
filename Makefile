@@ -9,6 +9,9 @@
 # This pipeline is able to run with multiple aligners (aligner modules)
 # Settings can be found in the conf.mk in this directory
 
+# Delete target if recipe returns error status code.
+.DELETE_ON_ERROR:
+
 # Load all module definition
 # Makefile specific settings
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
@@ -34,8 +37,9 @@ endif
 #######################
 ### General Targets ###
 #######################
+ 
 
-all: fastqc alignment aligmentstats sv_vcf report
+all: fastqc alignment aligmentstats sv_vcf report 
 
 ##############################
 ### Generate reference VCF ###
@@ -51,7 +55,9 @@ $(REFERENCE_VCF): $(SDI_FILE)
 #################
 
 BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
+
 alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
+
 aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
 %.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
@@ -64,7 +70,7 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
 %.flagstat: %.bam
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
 ###############
 ### Targets ###
@@ -72,18 +78,18 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := gasv delly bd prism pindel clever svdetect
-SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
+SV_PROGRAMS := meerkat clever delly bd prism pindel gasv
+SV_OUTPUT := $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
+SV_OUTPUT_2 := $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
-
 # Partial recipies
 qc: $(addsuffix .fastqc, $(SINGLES))
-FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
+FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS)) $(addsuffix .trimmed.fastq, $(SINGLES))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
-report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)))
+report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE))) $(addprefix $(OUT_DIR)/, $(addsuffix .report.tex, $(SAMPLE)))
 
 # settings for reporting
-EVALUATE_PREDICTIONS := python $(MAKEFILE_DIR)/evaluation/evaluate-sv-predictions2
+EVALUATE_PREDICTIONS := ~/virtualenv-1.10.1/myVE/bin/python $(MAKEFILE_DIR)/evaluation/evaluate-sv-predictions2
 
 
 #########################
@@ -116,9 +122,9 @@ $(OUT_DIR):
 
 %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t sanger -o $(basename $(word 1, $^)).trimmed.fastq -p $(basename $(word 2, $^)).trimmed.fastq -s $(basename $(word 1, $^)).singles.fastq -q 30 -l 25 > $(basename $(word 1, $^)).filtersync.stats
+
 %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): 
 	@
-
 
 # FastQC to check trimming
 %.trimmed_fastqc: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
@@ -129,11 +135,14 @@ $(OUT_DIR):
 ## Call the SV applications ##
 ##############################
 
+%.meerkat.vcf: %.bam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/meerkat/makefile REFERENCE=$(REFERENCE) DATA_BAM=$< $@
+
 %.bd.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile REFERENCE=$(REFERENCE) $@
 
 %.pindel.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) PINDEL_DIR=/virdir/Scratch/software/pindel/pindel_0.2.5a1 $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) PINDEL_DIR=../software/pindel/pindel_0.2.5a1 $@
 
 %.delly.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/delly/Makefile REFERENCE=$(REFERENCE) $@
@@ -145,7 +154,7 @@ $(OUT_DIR):
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/gasv/makefile REFERENCE=$(REFERENCE) $@
 
 %.clever.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/clever/Makefile REFERENCE=$(REFERENCE) IN=$< $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/clever/Makefile REFERENCE=$(REFERENCE) IN=$< VERSION=$(CLEVER_VERSION) $@
 
 %.svdetect.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/svdetect/makefile REFERENCE=$(REFERENCE) IN=$< $@
@@ -155,7 +164,7 @@ $(OUT_DIR):
 ## Create comparison report ##
 ##############################
 
-%.report.tex: $(SV_OUTPUT)
+%.report.tex: $(SV_OUTPUT_2)
 	$(EVALUATE_PREDICTIONS) -L $(REFERENCE_VCF) $^ > $@
 
 %.report.pdf: %.report.tex
