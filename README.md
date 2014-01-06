@@ -40,36 +40,21 @@ The software for the pipeline is placed into one central location in the followi
 
 	allbio@workbench:/virdir/Scratch/software$ tree -L 1
 	.
-	├── apache-ant-1.9.0
-	├── bedtools-2.17.0
 	├── bowtie2-2.1.0
 	├── breakdancer
 	├── bwa-0.7.4
 	├── circos-0.63-4
-	├── clever-1.1
 	├── clever-sv
-	├── CNVnator_v0.2.7
-	├── cnv-seq
 	├── delly_v0.0.9
-	├── download
 	├── dwac-seq0.7
 	├── FastQC
-	├── GapCloser1.12-r6
 	├── gasv
-	├── ggplot2
-	├── inGAP_3_0_1
-	├── mrsfast-2.6.0.4
 	├── picard-tools-1.86
 	├── pindel
 	├── PRISM_1_1_6
-	├── root
-	├── samtools-0.1.18
 	├── samtools-0.1.19
 	├── sickle-master
-	├── snappy-java-1.0.3-rc3.jar
-	├── sratoolkit.2.3.1-ubuntu64
-	├── SVDetect_r0.8b
-	└── svtoolkit
+	└── SVDetect_r0.8b
 
 
 ## Running the pipeline
@@ -79,6 +64,7 @@ Configuration can be done in the conf.mk and upon invocation of the pipeline by 
 The most important and required variables are: 
 
 * `PROGRAMS`: Path to the directory where the programs are installed  
+* `PYTHON_EXE`: Path to the `PYTHON` executable, defaults to `python` (system distributed version)
 * `REFERENCE_DIR`: Path to the reference
 * `REFERENCE_VCF`: Full path to the VCF file with reference SV calls for benchmarking
 * `FASTQ_EXTENSION`: Filename extentension of the FastQ files
@@ -103,7 +89,7 @@ Example invocation of the pipeline:
 
 ## Example setup of pipeline directories
 
-	allbio@workbench:/virdir/Backup/synthetic_run$ tree -L 1
+	allbio@workbench:/opt/allbio/runs/synthetic_run$ tree -L 1
 	.
 	├── input
 	│   ├── reference_tair10

@@ -22,7 +22,7 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 #####################
 
 # Programs folder for custom software. 
-PROGRAMS := /virdir/Scratch/software
+PROGRAMS := /opt/allbio/software/
 PROGRAMS_DIR := $(PROGRAMS)
 
 # BWA. 
@@ -56,6 +56,11 @@ SICKLE := $(SICKLE_DIR)/sickle
 SAMTOOLS_DIR := $(PROGRAMS)/samtools-0.1.19
 SAMTOOLS := $(SAMTOOLS_DIR)/samtools
 
+# Python, can be changed to a version which is not installed with the system
+# for example, a version which is installed in a virtualenv with the required
+# libraries. For information about venv's: http://www.virtualenv.org/
+
+PYTHON_EXE := python
 
 ####################
 ### Dependencies ###

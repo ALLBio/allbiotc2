@@ -13,7 +13,7 @@
 # Makefile specific settings
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
-SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
+#SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
 include $(MAKEFILE_DIR)/modules.mk
 include $(MAKEFILE_DIR)/conf.mk
 export MAKEFILE_DIR THIS_MAKEFILE
@@ -44,7 +44,7 @@ all: fastqc alignment aligmentstats sv_vcf report
 preprocess: $(REFERENCE_VCF)
 
 $(REFERENCE_VCF): $(SDI_FILE)
-	python $(MAKEFILE_DIR)/sdi-to-vcf/sdi-to-vcf.py -p $^ $(REFERENCE) > $@
+	$(PYTHON_EXE) $(MAKEFILE_DIR)/sdi-to-vcf/sdi-to-vcf.py -p $^ $(REFERENCE) > $@
 
 #################
 ### Alignment ###
@@ -72,7 +72,7 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := gasv delly bd prism pindel clever svdetect
+SV_PROGRAMS := prism gasv delly bd pindel clever svdetect
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 
@@ -83,7 +83,7 @@ fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)))
 
 # settings for reporting
-EVALUATE_PREDICTIONS := python $(MAKEFILE_DIR)/evaluation/evaluate-sv-predictions2
+EVALUATE_PREDICTIONS := $(PYTHON_EXE) $(MAKEFILE_DIR)/evaluation/evaluate-sv-predictions2
 
 
 #########################
@@ -133,7 +133,7 @@ $(OUT_DIR):
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile REFERENCE=$(REFERENCE) $@
 
 %.pindel.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) PINDEL_DIR=/virdir/Scratch/software/pindel/pindel_0.2.5a1 $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) PINDEL_DIR=$(PROGRAMS)/pindel/pindel_0.2.5a1 $@
 
 %.delly.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/delly/Makefile REFERENCE=$(REFERENCE) $@

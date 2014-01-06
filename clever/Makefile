@@ -55,4 +55,4 @@ all: $(OUT)
 ## Tool installation
 install:
 	sudo apt-get install libboost-all-dev
-	sudo pip install SciPy
+	sudo pip install SciPy bitarray
