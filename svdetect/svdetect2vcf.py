@@ -123,7 +123,7 @@ class SV2VCF(object):
                     # in case of insertions
                     # with insertions, the svend is the start of the breakpoint
                     svend = res.group(real_start)
-                    SVLEN = infodict[real_end] - infodict[real_start]
+                    SVLEN = infodict['end'] - infodict['start']
                     altbases = abs(SVLEN) * "N"
 
                 infodict.update({
