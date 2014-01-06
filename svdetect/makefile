@@ -54,7 +54,7 @@ all: $(OUT)
 
 # print the chromosome sizes to svdetect fasta index.
 %.svdetect.fai: $(REFERENCE).fai
-	awk '{print $$1,$$1,$$2}' $< >$@
+	awk '{print NR,$$1,$$2}' $< >$@
 
 # for the sake of clean working directories, rename original filename to sample.bam in svdetect workdir
 
