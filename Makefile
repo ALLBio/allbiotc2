@@ -142,13 +142,13 @@ $(OUT_DIR):
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/prism/Makefile REFERENCE=$(REFERENCE) $@
 
 %.gasv.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/gasv/makefile REFERENCE=$(REFERENCE) $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/gasv/Makefile REFERENCE=$(REFERENCE) $@
 
 %.clever.vcf: %.bam
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/clever/Makefile REFERENCE=$(REFERENCE) IN=$< $@
 
 %.svdetect.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/svdetect/makefile REFERENCE=$(REFERENCE) IN=$< $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/svdetect/Makefile REFERENCE=$(REFERENCE) IN=$< $@
 
 
 ##############################
