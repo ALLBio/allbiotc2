@@ -8,7 +8,7 @@ Takes an incomplete VCF, and tries to complement the ref and alt fields (not for
 Information should be stored in the INFO fields
 """
 __author__ = "Wai Yi Leung"
-__contact__ = "w dot y dot leung strudelsign lumc dot nl"
+__contact__ = "w dot y dot leung apple lumc dot nl"
 # (c) 2013 by Wai Yi Leung [LUMC - SASC]
 
 import re

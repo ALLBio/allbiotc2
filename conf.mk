@@ -1,3 +1,9 @@
+# conf.mk - Pipeline configuration for AllBioTC2
+#
+# (c) 2013 - Wai Yi Leung
+# (c) 2013 AllBio (see AUTHORS file)
+# 
+# Adapted makefile configuration from Wibowo Arindrarto [SASC-LUMC]
 
 ########################
 ### Pipeline Setting ###

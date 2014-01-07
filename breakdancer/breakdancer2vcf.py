@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-'''
-Convert breakdancer output to pseudo .vcf file format.
+__copyright__ = """
+Copyright (C) 2013 - Wai Yi Leung
+Copyright (C) 2013 AllBio (see AUTHORS file)
+"""
 
-Created on Mar 18, 2013
-
-@author: tbeek
-'''
+__desc__ = """Convert breakdancer output to pseudo .vcf file format."""
+__created__ = "Mar 18, 2013""
+__author__ = "tbeek"
 
 import csv
 import os.path

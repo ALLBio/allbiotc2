@@ -1,3 +1,8 @@
+# Makefile - alignment for the AllBioTC2 pipeline
+#
+# (c) 2013 - Wai Yi Leung
+# (c) 2013 AllBio (see AUTHORS file)
+
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 include $(MAKEFILE_DIR)/alignment.conf.mk
 # override defaults using conf.mk (which includes project.conf.mk)

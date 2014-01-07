@@ -1,3 +1,10 @@
+# Makefile - BreakDancer-max Module for the AllBioTC2 pipeline
+#
+# (c) 2013 - Wai Yi Leung
+# (c) 2013 AllBio (see AUTHORS file)
+# 
+# Adapted makefile configuration from Wibowo Arindrarto [SASC-LUMC]
+
 ########################
 ### Pipeline Setting ###
 ########################

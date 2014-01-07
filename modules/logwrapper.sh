@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# Environment logger, part of SASC rig framework (C) 2013 LUMC-SASC
+#
+# (c) 2013 - Wai Yi Leung
+# (c) 2013 - LUMC-SASC (http://www.lumc.nl/)
+
+
 # make sure we have a logfolder
 mkdir -p .log
 

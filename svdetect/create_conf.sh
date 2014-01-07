@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# (c) 2013 - Wai Yi Leung
+# (c) 2013 AllBio (see AUTHORS file)
 
 # this will modify (a copy of) the template.conf
 

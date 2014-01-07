@@ -1,8 +1,7 @@
-# preprocess-bwa.mk
+# Makefile - main file for the AllBioTC2 pipeline
 #
-# Makefile for preprocessing FastQ files -- Part of pipeline for ALLBioTC2
-#
-# (c) 2013 by Wai Yi Leung [SASC-LUMC]
+# (c) 2013 - Wai Yi Leung
+# (c) 2013 AllBio (see AUTHORS file)
 # 
 # Adapted makefile configuration from Wibowo Arindrarto [SASC-LUMC]
 # 
@@ -13,13 +12,13 @@
 # Makefile specific settings
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
-#SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
+SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
 include $(MAKEFILE_DIR)/modules.mk
 include $(MAKEFILE_DIR)/conf.mk
 export MAKEFILE_DIR THIS_MAKEFILE
 
 #######################
-#### Basic checking ###
+#### Basic testing  ###
 #######################
 
 # only check the variable in non-install goals
@@ -72,7 +71,7 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := prism gasv delly bd pindel clever svdetect
+SV_PROGRAMS := gasv delly bd pindel clever svdetect
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 
@@ -171,7 +170,7 @@ $(OUT_DIR):
 install:
 	echo Install python packages for the pipeline
 	sudo apt-get install python-biopython
-	
+	$(foreach program, $(SV_PROGRAMS), $(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(program)/Makefile install)
 
 .PHONY: help
 help:
