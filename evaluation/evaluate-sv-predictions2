@@ -219,6 +219,7 @@ class VariationList:
 				'transl': "TRANS", # not official spec, not used in this script
 			}
 			if self.probeVCFversion( line ) >= (4,1,0):
+				posB=None
 				# map some fields from 4.1 spec to 4.0
 				if info_fields['SVTYPE'] == 'BND':
 					event_type = info_fields['EVENT'].split("_")[0].lower() # e.g. del_5468 > DEL
@@ -231,12 +232,15 @@ class VariationList:
 					# format: [chrB:posB[
 #					print(re.findall(r'([\w\d]+)\:([\d]+)', alt, re.I | re.M))
 					chrB, posB = re.findall(r'([\w\d]+)\:([\d]+)', alt, re.I | re.M)[0]
-					
-				if info_fields['SVTYPE'] in ['DEL', 'INS']:
-					sv_coords = [int(fields[1]), int(posB)]
-					sv_coords.sort()
-					svlen = sv_coords[1] - sv_coords[0]
-					info_fields['SVLEN'] = svlen
+				if info_fields['SVTYPE'] in ['DEL', 'INS'] and posB:
+					if not 'SVLEN' in info_fields.keys():
+						sv_coords = [int(fields[1]), int(posB)]
+						sv_coords.sort()
+						svlen = sv_coords[1] - sv_coords[0]
+						info_fields['SVLEN'] = svlen
+				alt = '.'
+				ref = '.'
+			if (alt in ['<DEL>', '<INS>']):
 				alt = '.'
 				ref = '.'
 			if (alt == '.') or (ref == '.'):
@@ -1383,7 +1387,7 @@ def print_results_latex(results, length_ranges, true_indel_counts):
 			best.improve(tool_stats)
 		for tool_stats in toolwise_results:
 			print(
-				right_pad(tool_stats.name.replace('.vcf', '').replace('_', '-'),w0),
+				right_pad(tool_stats.name.replace('.vcf','').replace('mean', 'm').replace('stddev', 'sd').replace('_','-'),w0),
 				right_pad(str(tool_stats.deletion_count), w),
 				format_value_tex(tool_stats.deletion_precision,w,best.deletion_precision),
 				format_value_tex(tool_stats.deletion_mix_hits,w,best.deletion_mix_hits),
@@ -1652,8 +1656,8 @@ def main():
 			print('\\section{Prediction accuracy}')
 		for tool_idx, (tool_name, predictions) in enumerate(zip(tool_names, predictions_lists)):
 			if options.latex_output: print('\\subsection{%s}'%tool_name)
-			predictions_tags = list(predictions.get_all_tags())
-			predictions_tags.sort()
+#			predictions_tags = list(predictions.get_all_tags())
+#			predictions_tags.sort()
 			for range_idx, (min_length, max_length) in enumerate(length_ranges):
 				ins_prec_list, ins_recall_list, del_prec_list, del_recall_list = all_stats_lists[range_idx][tool_idx]
 				del_accuracy_stats = extract_accuracy_stats(del_prec_list)
