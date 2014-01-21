@@ -39,7 +39,7 @@ BREAKDANCE_BAM2CFG := perl $(BREAKDANCE_DIR)/lib/breakdancer-max-unstable/bam2cf
 PINDEL_DIR := $(PROGRAMS_DIR)/pindel/trunk
 PINDEL := $(PINDEL_DIR)/pindel
 PINDEL2VCF := $(PINDEL_DIR)/pindel2vcf
-PINDEL_THREADS = 16
+PINDEL_THREADS = $(THREADS)
 PINDEL_OUTPUT_EXTENTIONS := .pindel_D .pindel_SI .pindel_LI .pindel_INT .pindel_INV .pindel_TD
 PINDEL_TOVCF_EXTENSION := .pindel_D .pindel_SI .pindel_INV .pindel_TD
 
