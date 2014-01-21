@@ -27,36 +27,33 @@ include $(MAKEFILE_DIR)/../conf.mk
 
 ## Paths to tools used
 DELLY_DIR = $(PROGRAMS_DIR)/delly_v0.0.9
-DELLY = $(DELLY_DIR)/delly
-DUPPY = $(DELLY_DIR)/duppy
-INVY = $(DELLY_DIR)/invy
-JUMPY = $(DELLY_DIR)/jumpy
 
+NEW_DELLY := $(PROGRAMS_DIR)/delly/delly_v0.2.2_linux_x86_64bit
+
+%.delly/delly.raw.vcf: %.bam $(REFERENCE)
+	$(NEW_DELLY) t -t DEL -o $@ -g $(word 2, $^) $<
+
+%.delly.vcf: %.delly/delly.raw.vcf
+	cp $< $@
+
+
+
+
+
+# for old version of delly (0.0.9)
 ##
-%.delly/reference.fa: $(REFERENCE)
-	mkdir -p $(dir $@);
-	cat $< | cut -f 1 -d' ' > $@
+#%.delly/reference.fa: $(REFERENCE)
+#	mkdir -p $(dir $@);
+#	cat $< | cut -f 1 -d' ' > $@
 
 ## 
-%.delly/delly.tsv: %.bam %.delly/reference.fa
-	## TODO the source of some of the input files is unclear
-	$(DELLY) -p -g $(word 2, $^) -b $(addprefix BREAKPOINT.txt, $(dir $@)) -o $@ $<
+#%.delly/delly.tsv: %.bam %.delly/reference.fa
+#	## TODO the source of some of the input files is unclear
+#	$(DELLY) -p -g $(word 2, $^) -b $(addprefix BREAKPOINT.txt, $(dir $@)) -o $@ $<
 
-%.delly/duppy.tsv: %.bam
-	## TODO
-	# $(DUPPY)
-
-%.delly/invy.tsv: %.bam
-	## TODO
-	# $(INVY)
-
-%.delly/jumpy.tsv: %.bam
-	## TODO
-	# $(JUMPY)
-
-%.delly.vcf: %.delly/delly.tsv
-	grep "Deletion" $< > $<.deletion.tab
-	perl $(THIS_MAKEFILE_DIR)/delly-extract-convert.pl $<.deletion.tab > $@
+#%.delly.vcf: %.delly/delly.tsv
+#	grep "Deletion" $< > $<.deletion.tab
+#	perl $(THIS_MAKEFILE_DIR)/delly-extract-convert.pl $<.deletion.tab > $@
 
 ## I ran Delly on the Ler dataset from Bowtie2 using a 16 core virtual machine (ubuntu).  The following commands:
 ## 
