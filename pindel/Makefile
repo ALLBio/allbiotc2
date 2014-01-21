@@ -55,6 +55,11 @@ all: $(OUT)
 ### Rules and Recipes ###
 #########################
 
+
+# Just for make -n
+%.bam:
+	@
+
 # expect $(IN) = %.sort.bam
 # Breakdancer configfile generation
 %.pindel/bd.cfg: %.bam %.bam.bai

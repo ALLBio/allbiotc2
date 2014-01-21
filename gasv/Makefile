@@ -26,10 +26,6 @@ THIS_MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 #####################
 ### Used Programs ###
 #####################
-
-# programs folder for custom software.
-PROGRAMS_DIR := /virdir/Scratch/software
-
 include $(MAKEFILE_DIR)/../conf.mk
 
 
@@ -55,7 +51,12 @@ all: $(OUT)
 #########################
 
 # expect $(IN) = *.bam
-%.gasv/sample.gasv.in: %.bam
+
+# Just for make -n
+%.bam:
+	@
+
+%.gasv/sample.gasv.in: %.bam | %.bam
 	mkdir -p $(dir $@);
 	$(JAVA) $(BAM2GASV) $< -OUTPUT_PREFIX $(dir $@)sample
 
@@ -63,4 +64,6 @@ all: $(OUT)
 	cd $(dir $@);$(JAVA) $(GASV) --batch $?
 
 %.gasv.vcf: %.gasv/sample.gasv.in.clusters
+	echo Hierzo
 	$(GASV2VCF) $< $@ BWA
+
