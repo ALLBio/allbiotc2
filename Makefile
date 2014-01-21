@@ -45,33 +45,12 @@ preprocess: $(REFERENCE_VCF)
 $(REFERENCE_VCF): $(SDI_FILE)
 	$(PYTHON_EXE) $(MAKEFILE_DIR)/sdi-to-vcf/sdi-to-vcf.py -p $^ $(REFERENCE) > $@
 
-#################
-### Alignment ###
-#################
-
-BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
-alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
-aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
-
-%.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
-
-%.bam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
-
-%.bam.bai: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
-
-%.flagstat: %.bam
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk IN="$^" $@
-
 ###############
 ### Targets ###
 ###############
 
 # outputdir for all recipies:
 
-# this will output the VCF in the output
 SV_PROGRAMS := gasv delly bd pindel clever svdetect
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
@@ -123,6 +102,26 @@ $(OUT_DIR):
 # FastQC to check trimming
 %.trimmed_fastqc: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
 	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
+
+#################
+### Alignment ###
+#################
+
+BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
+alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
+aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
+
+%.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+
+%.bam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+
+%.bam.bai: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+
+%.flagstat: %.bam
+	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
 
 ##############################
