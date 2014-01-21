@@ -5,7 +5,7 @@ Copyright (C) 2013 AllBio (see AUTHORS file)
 """
 
 __desc__ = """Convert GASV output to pseudo .vcf file format."""
-__created__ = "Mar 18, 2013""
+__created__ = "Mar 18, 2013"
 __author__ = "Xenofon Evangelopoulos"
 
 ###    USAGE:
