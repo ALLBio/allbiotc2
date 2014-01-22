@@ -31,7 +31,8 @@ PROGRAMS_DIR := /virdir/Scratch/software
 include $(MAKEFILE_DIR)/../conf.mk
 
 # clever-sv
-CLEVER_DIR := $(PROGRAMS_DIR)/clever-sv/bin
+CLEVER_VERSION := clever-toolkit-v2.0rc3
+CLEVER_DIR := $(PROGRAMS_DIR)/clever/$(CLEVER_VERSION)/bin
 CLEVER := $(CLEVER_DIR)/clever
 
 
@@ -52,7 +53,7 @@ all: $(OUT)
 #	mkdir -p $(dir $@);
 #	samtools view -bST $(REFERENCE) $(addsuffix .sam, $(basename $<)) > $@
 
-%.clever.vcf: $(IN)
+%.clever.vcf: *.bam
 	mkdir -p $(basename $<).clever/;
 	SGE_RREQ="-now no -pe $(SGE_PE) $(THREADS)" $(CLEVER) -f --use_xa --sorted -T $(THREADS) -k $< $(REFERENCE) $(basename $<).clever/; cp $(basename $<).clever/predictions.vcf $@
 

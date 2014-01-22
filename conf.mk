@@ -32,6 +32,7 @@ PROGRAMS := /opt/allbio/software/
 PROGRAMS_DIR := $(PROGRAMS)
 
 # BWA. 
+BWA_VERSION=bwa-v0.7.5a
 BWA = $(BWA_DIR)/bwa
 
 # BOWTIE2. 
@@ -39,7 +40,7 @@ BOWTIE2_DIR := $(PROGRAMS)/bowtie2-2.1.0
 BOWTIE2 := $(BOWTIE2_DIR)/bowtie2
 
 # Dependencies
-BWA_DIR := $(PROGRAMS)/bwa-0.7.4
+BWA_DIR := $(PROGRAMS)/bwa/$(BWA_VERSION)
 BWA_THREADS := 4
 BWA_MAX_INSERT_SIZE := 500 #[500]
 
@@ -50,16 +51,19 @@ BWA_ALN_OPTIONS := -t $(BWA_OPTION_THREADS)
 BWA_SAMPE_OPTIONS := -n25 -N25
 
 # FastQC 
-FASTQC_DIR := $(PROGRAMS)/FastQC
+FASTQC_VERSION := fastqc_v0.10.1
+FASTQC_DIR := $(PROGRAMS)/FastQC/$(FASTQC_VERSION)
 FASTQC := $(FASTQC_DIR)/fastqc
 FASTQC_THREADS := 4
 
 # Sickle
-SICKLE_DIR := $(PROGRAMS)/sickle-master
+SICKLE_VERSION := sickle-v1.2.1
+SICKLE_DIR := $(PROGRAMS)/sickle/$(SICKLE_VERSION)
 SICKLE := $(SICKLE_DIR)/sickle
 
 # Samtools.
-SAMTOOLS_DIR := $(PROGRAMS)/samtools-0.1.19
+SAMTOOLS_VERSION := samtools-v0.1.19
+SAMTOOLS_DIR := $(PROGRAMS)/samtools/$(SAMTOOLS_VERSION)
 SAMTOOLS := $(SAMTOOLS_DIR)/samtools
 
 # Python, can be changed to a version which is not installed with the system

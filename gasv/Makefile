@@ -30,7 +30,7 @@ include $(MAKEFILE_DIR)/../conf.mk
 
 
 # GASV
-GASV_DIR := $(PROGRAMS_DIR)/gasv
+GASV_DIR := $(PROGRAMS_DIR)/gasv/GASVRelease_Oct1_2013
 BAM2GASV := $(GASV_DIR)/bin/BAMToGASV.jar
 GASV := $(GASV_DIR)/bin/GASV.jar
 JAVA := java -Xms512m -Xmx2048m -jar
@@ -64,6 +64,5 @@ all: $(OUT)
 	cd $(dir $@);$(JAVA) $(GASV) --batch $?
 
 %.gasv.vcf: %.gasv/sample.gasv.in.clusters
-	echo Hierzo
 	$(GASV2VCF) $< $@ BWA
 

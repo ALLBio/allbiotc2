@@ -14,7 +14,7 @@ SGE_PE = BWA
 .SECONDARY:
 
 # Delete target if recipe returns error status code.
-.DELETE_ON_ERROR:
+#.DELETE_ON_ERROR:
 
 # Makefile specific settings
 THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
@@ -25,18 +25,19 @@ THIS_MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 ### Used Programs ###
 #####################
 
-# Programs folder for custum software. 
-PROGRAMS_DIR := /virdir/Scratch/software
-
 include $(MAKEFILE_DIR)/../conf.mk
 
 # Breakdancer
-BREAKDANCE_DIR := $(PROGRAMS_DIR)/breakdancer_deploy_1.3.5
-BREAKDANCE := $(BREAKDANCE_DIR)/bin/breakdancer-max
-BREAKDANCE_BAM2CFG := perl $(BREAKDANCE_DIR)/lib/breakdancer-max-unstable/bam2cfg.pl
+BREAKDANCER_VERSION := breakdancer-v1.4.4
+BREAKDANCER_CFG_VERSION := breakdancer-max1.4.4
+
+## Paths to tools used
+BREAKDANCER_DIR := $(PROGRAMS_DIR)/breakdancer/$(BREAKDANCER_VERSION)
+BAM2CFG := $(BREAKDANCER_DIR)/lib/$(BREAKDANCER_CFG_VERSION)/bam2cfg.pl
 
 # pindel 
-PINDEL_DIR := $(PROGRAMS_DIR)/pindel/trunk
+PINDEL_VERSION := pindel-0.2.5
+PINDEL_DIR := $(PROGRAMS_DIR)/pindel/$(PINDEL_VERSION)
 PINDEL := $(PINDEL_DIR)/pindel
 PINDEL2VCF := $(PINDEL_DIR)/pindel2vcf
 PINDEL_THREADS = $(THREADS)
@@ -59,12 +60,17 @@ all: $(OUT)
 # Just for make -n
 %.bam:
 	@
+%.bam.bai:
+	@
 
 # expect $(IN) = %.sort.bam
 # Breakdancer configfile generation
-%.pindel/bd.cfg: %.bam %.bam.bai
-	mkdir -p $(dir $@);
-	$(BREAKDANCE_BAM2CFG) $< > $@
+
+.SECONDEXPANSION:
+%.pindel/bd.cfg: $$(dir $$@)/../bd.cfg
+	cp $< $@
+	
+
 
 # Pindel
 %.pindel/pindel.cfg: %.bam %.pindel/bd.cfg
@@ -82,6 +88,4 @@ install:
 	sudo cpan Statistics::Descriptive;
 	sudo cpan GD::Graph::histogram;
 	sudo cpan Math::CDF;
-	#git clone git://github.com/genome/breakdancer.git
-	#cd breakdancer; git checkout v1.3.6;
-	#wget http://breakdancer.sourceforge.net/morecpp.html;
+

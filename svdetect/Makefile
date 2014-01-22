@@ -17,7 +17,7 @@ SGE_PE = BWA
 .SECONDARY:
 
 # Delete target if recipe returns error status code.
-.DELETE_ON_ERROR:
+#.DELETE_ON_ERROR:
 
 # Makefile specific settings
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
@@ -33,8 +33,10 @@ PROGRAMS_DIR := /virdir/Scratch/software
 include $(MAKEFILE_DIR)/../conf.mk
 
 # SVDetect
-SVDETECT_DIR := $(PROGRAMS_DIR)/SVDetect_r0.8b
-SVDETECT_LIB_DIR := $(PROGRAMS_DIR)/SVDetect_r0.8b/lib
+SVDETECT_VERSION := SVDetect_r0.8b
+SVDETECT_DIR := $(PROGRAMS_DIR)/svdetect/$(SVDETECT_VERSION)
+SVDETECT_LIB_DIR := $(SVDETECT_DIR)/lib
+
 SVDETECT := $(SVDETECT_DIR)/bin/SVDetect
 SVDETECT_BAMPROCESSING := perl $(SVDETECT_DIR)/scripts/BAM_preprocessingPairs.pl
 SVDETECT2VCF := python $(THIS_MAKEFILE_DIR)/svdetect2vcf.py
@@ -52,6 +54,10 @@ all: $(OUT)
 
 # expect $(IN) = *.bam
 
+# Just for make -n
+%.bam:
+	@
+	
 # print the chromosome sizes to svdetect fasta index.
 %.svdetect.fai: $(REFERENCE).fai
 	awk '{print NR,$$1,$$2}' $< >$@

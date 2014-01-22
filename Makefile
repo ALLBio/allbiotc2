@@ -34,7 +34,7 @@ endif
 ### General Targets ###
 #######################
 
-all: fastqc alignment aligmentstats sv_vcf report
+all: fastqc trimming alignment aligmentstats sv_vcf report
 
 ##############################
 ### Generate reference VCF ###
@@ -51,12 +51,14 @@ $(REFERENCE_VCF): $(SDI_FILE)
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := gasv delly bd pindel clever svdetect
+SV_PROGRAMS := prism gasv delly breakdancer pindel clever svdetect
 SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 
 # Partial recipies
 qc: $(addsuffix .fastqc, $(SINGLES))
+TRIMMED_FASTQ_FILES = $(addsuffix .trimmed.$(FASTQ_EXTENSION), $(SINGLES))
+trimming: $(TRIMMED_FASTQ_FILES)
 FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)))
@@ -128,27 +130,12 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 ## Call the SV applications ##
 ##############################
 
-%.bd.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile REFERENCE=$(REFERENCE) $@
+get_extension = $(lastword $(subst ., , $(basename $(value 1))))
 
-%.pindel.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) PINDEL_DIR=$(PROGRAMS)/pindel/pindel_0.2.5a1 $@
-
-%.delly.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/delly/Makefile REFERENCE=$(REFERENCE) $@
-
-%.prism.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/prism/Makefile REFERENCE=$(REFERENCE) $@
-
-%.gasv.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/gasv/Makefile REFERENCE=$(REFERENCE) $@
-
-%.clever.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/clever/Makefile REFERENCE=$(REFERENCE) IN=$< $@
-
-%.svdetect.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/svdetect/Makefile REFERENCE=$(REFERENCE) IN=$< $@
-
+.SECONDEXPANSION:
+%.vcf: $$(basename $$(basename $$@ )).bam
+	echo $(call get_extension, $@)
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(call get_extension, $@)/Makefile REFERENCE=$(REFERENCE) $@
 
 ##############################
 ## Create comparison report ##
