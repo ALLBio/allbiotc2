@@ -11,7 +11,7 @@
 # Load all module definition
 # Makefile specific settings
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
-THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
 include $(MAKEFILE_DIR)/modules.mk
 include $(MAKEFILE_DIR)/conf.mk
@@ -51,15 +51,15 @@ $(REFERENCE_VCF): $(SDI_FILE)
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := prism gasv delly breakdancer pindel clever svdetect
-SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
+SV_PROGRAMS := gasv delly breakdancer pindel clever svdetect
+SV_OUTPUT := $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 
 # Partial recipies
 qc: $(addsuffix .fastqc, $(SINGLES))
-TRIMMED_FASTQ_FILES = $(addsuffix .trimmed.$(FASTQ_EXTENSION), $(SINGLES))
+TRIMMED_FASTQ_FILES := $(addsuffix .trimmed.$(FASTQ_EXTENSION), $(SINGLES))
 trimming: $(TRIMMED_FASTQ_FILES)
-FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
+FASTQC_FILES := $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)))
 
@@ -92,24 +92,30 @@ $(OUT_DIR):
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/fastqc.mk $@
 
 # FastQC for quality control
-%.raw_fastqc: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
-	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
+%.raw_fastqc/.created: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
+	mkdir -p $(dir $@) && touch $@
+
+%.raw_fastqc: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION) | %.raw_fastqc/.created
+	SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $(dir $@) && false)
 
 %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t sanger -o $(basename $(word 1, $^)).trimmed.fastq -p $(basename $(word 2, $^)).trimmed.fastq -s $(basename $(word 1, $^)).singles.fastq -q 30 -l 25 > $(basename $(word 1, $^)).filtersync.stats
-%$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): 
+%$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	@
 
 
 # FastQC to check trimming
-%.trimmed_fastqc: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
+%.trimmed_fastqc/.created: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
+	mkdir -p $(dir $@) && touch $@
+
+%.trimmed_fastqc: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION) | %.trimmed_fastqc/.created
+	SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $(dir $@) && false)
 
 #################
 ### Alignment ###
 #################
 
-BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
+BAM_FILES := $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
 alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
 aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
@@ -130,12 +136,11 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 ## Call the SV applications ##
 ##############################
 
-get_extension = $(lastword $(subst ., , $(basename $(value 1))))
+get_extension = $(subst .,,$(suffix $1))
 
 .SECONDEXPANSION:
 %.vcf: $$(basename $$(basename $$@ )).bam
-	echo $(call get_extension, $@)
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(call get_extension, $@)/Makefile REFERENCE=$(REFERENCE) $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(call get_extension, $(basename $@))/Makefile REFERENCE=$(REFERENCE) $@
 
 ##############################
 ## Create comparison report ##
