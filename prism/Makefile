@@ -46,6 +46,12 @@ all: $(OUT)
 ### Rules and Recipes ###
 #########################
 
+# Just for make -n
+%.bam:
+	@
+%.bam.bai:
+	@
+
 # expect $(IN) = %.bam
 %.prism/split_all.sam_ns_rmmul_cigar_sorted_sv: %.sam $(REFERENCE) bd.cfg
 	mkdir -p $(dir $@);
