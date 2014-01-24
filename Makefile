@@ -11,12 +11,15 @@
 # Load all module definition
 # Makefile specific settings
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
-THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
+.ONESHELL:
 SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
 include $(MAKEFILE_DIR)/modules.mk
 include $(MAKEFILE_DIR)/conf.mk
 export MAKEFILE_DIR THIS_MAKEFILE
 
+#MAKE := /data/DIV5/SASC/common/programs/sge/shake
+MAKE := make
 #######################
 #### Basic testing  ###
 #######################
@@ -40,10 +43,11 @@ all: fastqc trimming alignment aligmentstats sv_vcf report
 ### Generate reference VCF ###
 ##############################
 
+ifeq ($(MAKECMDGOALS),preprocess)
 preprocess: $(REFERENCE_VCF)
-
 $(REFERENCE_VCF): $(SDI_FILE)
 	$(PYTHON_EXE) $(MAKEFILE_DIR)/sdi-to-vcf/sdi-to-vcf.py -p $^ $(REFERENCE) > $@
+endif
 
 ###############
 ### Targets ###
@@ -51,15 +55,15 @@ $(REFERENCE_VCF): $(SDI_FILE)
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := prism gasv delly breakdancer pindel clever svdetect
-SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
+SV_PROGRAMS := gasv delly breakdancer pindel clever svdetect
+SV_OUTPUT := $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 
 # Partial recipies
 qc: $(addsuffix .fastqc, $(SINGLES))
-TRIMMED_FASTQ_FILES = $(addsuffix .trimmed.$(FASTQ_EXTENSION), $(SINGLES))
+TRIMMED_FASTQ_FILES := $(addsuffix .trimmed.$(FASTQ_EXTENSION), $(SINGLES))
 trimming: $(TRIMMED_FASTQ_FILES)
-FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
+FASTQC_FILES := $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)))
 
@@ -96,7 +100,7 @@ $(OUT_DIR):
 	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
 
 %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
-	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t sanger -o $(basename $(word 1, $^)).trimmed.fastq -p $(basename $(word 2, $^)).trimmed.fastq -s $(basename $(word 1, $^)).singles.fastq -q 30 -l 25 > $(basename $(word 1, $^)).filtersync.stats
+	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t sanger -o $(basename $(word 1, $^)).trimmed.$(FASTQ_EXTENSION) -p $(basename $(word 2, $^)).trimmed.$(FASTQ_EXTENSION) -s $(basename $(word 1, $^)).singles.$(FASTQ_EXTENSION) -q 30 -l 25 > $(basename $(word 1, $^)).filtersync.stats
 %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): 
 	@
 
@@ -109,21 +113,21 @@ $(OUT_DIR):
 ### Alignment ###
 #################
 
-BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
+BAM_FILES := $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
 alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
 aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
 %.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
 %.bam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+	@
 
 %.bam.bai: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+	@
 
 %.flagstat: %.bam
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+	@
 
 
 ##############################
@@ -134,7 +138,6 @@ get_extension = $(lastword $(subst ., , $(basename $(value 1))))
 
 .SECONDEXPANSION:
 %.vcf: $$(basename $$(basename $$@ )).bam
-	echo $(call get_extension, $@)
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(call get_extension, $@)/Makefile REFERENCE=$(REFERENCE) $@
 
 ##############################

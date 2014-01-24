@@ -9,11 +9,9 @@ include $(MAKEFILE_DIR)/alignment.conf.mk
 include $(MAKEFILE_DIR)/../conf.mk
 
 %.sam: $(IN)
-	echo $(shell pwd)
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/aligners/$(ALIGNER).mk IN="$^" $@
 
-%.bam: $(IN)
-	echo $(shell pwd)
+%.bam: %.sam
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/aligners/$(ALIGNER).mk IN="$^" $@
 
 %.bam.bai: %.bam

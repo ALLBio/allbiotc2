@@ -77,9 +77,9 @@ PYTHON_EXE := python
 ####################
 
 # References
-REFERENCE_DIR = $(MAKEFILE_DIR)/reference
-REFERENCE_BWA = $(REFERENCE_DIR)/bwa/reference.fa
-REFERENCE_BOWTIE2 = $(REFERENCE_DIR)/bowtie2/reference
+REFERENCE_DIR := $(MAKEFILE_DIR)/reference
+REFERENCE_BWA := $(REFERENCE_DIR)/bwa/reference.fa
+REFERENCE_BOWTIE2 := $(REFERENCE_DIR)/bowtie2/reference
 REFERENCE := $(REFERENCE_DIR)/reference.fa
 
 ##########################
@@ -95,7 +95,7 @@ FASTQ_EXTENSION := fastq
 QSCORE_FORMAT := sanger
 THREADS := 8
 
-ALIGNER = bwa-mem
+ALIGNER := bwa-mem
 
 # input directory, defaults to current directory
 IN_DIR := $(shell pwd)

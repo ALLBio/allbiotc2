@@ -67,10 +67,9 @@ all: $(OUT)
 # Breakdancer configfile generation
 
 .SECONDEXPANSION:
-%.pindel/bd.cfg: $$(dir $$@)/../bd.cfg
-	cp $< $@
-	
-
+%.pindel/bd.cfg: %.bam %.bam.bai
+	mkdir -p $(dir $@);
+	$(BAM2CFG) $< > $@
 
 # Pindel
 %.pindel/pindel.cfg: %.bam %.pindel/bd.cfg
