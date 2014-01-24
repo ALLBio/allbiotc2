@@ -25,13 +25,11 @@ THIS_MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 ### Used Programs ###
 #####################
 
-# Programs
-PROGRAMS_DIR := /virdir/Scratch/software
-
 include $(MAKEFILE_DIR)/../conf.mk
 
 # Prism
-PRISM_DIR := $(PROGRAMS_DIR)/PRISM_1_1_6
+PRISM_VERSION := PRISM_1_1_6
+PRISM_DIR := $(PROGRAMS_DIR)/prism/$(PRISM_VERSION)
 PRISM := $(PRISM_DIR)/toolkit/run_PRISM.sh
 PRISM2VCF := python $(THIS_MAKEFILE_DIR)/prism2vcf.py
 
@@ -41,19 +39,22 @@ PRISM2VCF := python $(THIS_MAKEFILE_DIR)/prism2vcf.py
 
 all: $(OUT)
 
-
 #########################
 ### Rules and Recipes ###
 #########################
 
 # Just for make -n
+$(BDCFG):
+	@
+%.sam:
+	@
 %.bam:
 	@
 %.bam.bai:
 	@
 
 # expect $(IN) = %.bam
-%.prism/split_all.sam_ns_rmmul_cigar_sorted_sv: %.sam $(REFERENCE) bd.cfg
+%.prism/split_all.sam_ns_rmmul_cigar_sorted_sv: %.sam $(REFERENCE) $(BDCFG)
 	mkdir -p $(dir $@);
 	(export PRISM_PATH=$(PRISM_DIR);PRISM_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean: | cut -f 2 -d ':' | python -c "print '%d' % round(float(raw_input()),0)"`; PRISM_INSERTSIZESD=`sed -e 's/\t/\n/g' $(lastword $^) | grep std: | cut -f 2 -d ':' | python -c "print '%d' % round(float(raw_input()),0)"`;$(PRISM) -m $$PRISM_INSERTSIZE -e $$PRISM_INSERTSIZESD -I $(dir $@) -O $(dir $@) -r $(REFERENCE) -i $< -a BWA)
 

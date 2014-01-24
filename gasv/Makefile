@@ -56,13 +56,16 @@ all: $(OUT)
 %.bam:
 	@
 
-%.gasv/sample.gasv.in: %.bam | %.bam
+%.gasv/sample.gasv.in: %.bam
 	mkdir -p $(dir $@);
 	$(JAVA) $(BAM2GASV) $< -OUTPUT_PREFIX $(dir $@)sample
 
-%.gasv/sample.gasv.in.clusters: %.gasv/sample.gasv.in
+%.gasv/sample.gasv.in.txt: %.gasv/sample.gasv.in
+	sed 's:$(basename $<)/:$(dir $@):g' $< > $@
+
+%.gasv/sample.gasv.in.txt.clusters: %.gasv/sample.gasv.in.txt
 	cd $(dir $@);$(JAVA) $(GASV) --batch $?
 
-%.gasv.vcf: %.gasv/sample.gasv.in.clusters
+%.gasv.vcf: %.gasv/sample.gasv.in.txt.clusters
 	$(GASV2VCF) $< $@ BWA
 

@@ -58,6 +58,8 @@ all: $(OUT)
 
 
 # Just for make -n
+$(BDCFG):
+	echo $(BDCFG)
 %.bam:
 	@
 %.bam.bai:
@@ -68,11 +70,17 @@ all: $(OUT)
 	$(BAM2CFG) $< > $@
 
 # Pindel
-%.pindel/pindel.cfg: %.bam %.pindel/bd.cfg
+%.pindel/pindel.cfg: %.bam $(BDCFG)
+	mkdir -p $(dir $@);
 	(PINDEL_INSERTSIZE=`sed -e 's/\t/\n/g' $(lastword $^) | grep mean: | cut -f 2 -d ':'`;echo '$<	'$$PINDEL_INSERTSIZE'	$<' > $@)
 
+
+# Turning off the Interchromosomal translocation detection by : -I 0
+# Turning off the Inversion detection: -r 0
+# Turning off the tandem duplication: -t 0
+# Enable long insertion : -l 1
 %.pindel/pindel_res: %.pindel/pindel.cfg %.bam %.bam.bai
-	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -i $< -o $@  -I -T $(PINDEL_THREADS) && touch $@
+	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -i $< -o $@ -I 0 -r 0 -t 0 -l 1 -T $(PINDEL_THREADS) && touch $@
 
 %.pindel.vcf: %.pindel/pindel_res
 	$(PINDEL2VCF) -P $< -r $(REFERENCE) -R benchmarkgenome -d $(shell date +'%Y%m%d%H%M%S') -v $@

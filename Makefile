@@ -13,7 +13,7 @@
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 .ONESHELL:
-SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
+#SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
 include $(MAKEFILE_DIR)/modules.mk
 include $(MAKEFILE_DIR)/conf.mk
 export MAKEFILE_DIR THIS_MAKEFILE
@@ -36,7 +36,7 @@ endif
 ### General Targets ###
 #######################
 
-all: fastqc trimming alignment aligmentstats sv_vcf report
+all: fastqc trimming alignment breakdancer_config aligmentstats sv_vcf report
 
 ##############################
 ### Generate reference VCF ###
@@ -53,9 +53,10 @@ endif
 ###############
 
 # outputdir for all recipies:
-SV_PROGRAMS := gasv delly breakdancer pindel prism clever svdetect
-SV_OUTPUT = $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
-sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
+#SV_PROGRAMS := gasv delly breakdancer pindel prism clever svdetect
+SV_PROGRAMS := gasv delly breakdancer pindel clever svdetect prism
+SV_OUTPUT := $(addprefix $(OUT_DIR)/, $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf)))
+sv_vcf: $(SV_OUTPUT)
 
 # Partial recipies
 qc: $(addsuffix .fastqc, $(SINGLES))
@@ -81,6 +82,7 @@ test:
 	echo $(MAKEFILE_DIR)
 	echo $(SV_OUTPUT)
 	echo $(SAMPLE)
+	echo $(OUT_DIR)
 
 #########################
 ### Rules and Recipes ###
@@ -117,21 +119,38 @@ $(OUT_DIR):
 ### Alignment ###
 #################
 
-BAM_FILES := $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
-alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
+BAM_FILES := $(addprefix $(OUT_DIR)/, $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE)))
+alignment: $(BAM_FILES)
 aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
 %.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
-%.bam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	@
+%.bam: %.sam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
-%.bam.bai: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	@
+%.bam.bai: %.bam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
 
 %.flagstat: %.bam
-	@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+
+##############################
+## Precompute a dependency  ##
+##############################
+
+
+breakdancer_config: $(addprefix $(OUT_DIR)/, $(addsuffix .bd.cfg, $(SAMPLE)) )
+BREAKDANCER_VERSION := breakdancer-v1.4.4
+BREAKDANCER_CFG_VERSION := breakdancer-max1.4.4
+
+## Paths to tools used
+BREAKDANCER_DIR := $(PROGRAMS_DIR)/breakdancer/$(BREAKDANCER_VERSION)
+BAM2CFG := $(BREAKDANCER_DIR)/lib/$(BREAKDANCER_CFG_VERSION)/bam2cfg.pl
+
+## Create configuration file for Breakdancer based on bam file
+%.bd.cfg: %.bam
+	perl $(BAM2CFG) $? > $@;
 
 
 ##############################
@@ -141,8 +160,8 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 get_extension = $(subst .,,$(suffix $1))
 
 .SECONDEXPANSION:
-%.vcf: $$(basename $$(basename $$@ )).bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(call get_extension, $(basename $@))/Makefile REFERENCE=$(REFERENCE) $@
+%.vcf: $$(basename $$(basename $$@ )).bam $$(basename $$(basename $$@ )).bam.bai $$(basename $$(basename $$@ )).bd.cfg
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(call get_extension, $(basename $@))/Makefile REFERENCE=$(REFERENCE) BDCFG=$(lastword $^) $@
 
 ##############################
 ## Create comparison report ##

@@ -39,22 +39,17 @@ BAM2CFG := $(BREAKDANCER_DIR)/lib/$(BREAKDANCER_CFG_VERSION)/bam2cfg.pl
 BD2VCF := python $(THIS_MAKEFILE_DIR)/breakdancer2vcf.py
 
 # Just for make -n
-%.bam:
+$(BDCFG):
 	@
-	
-## Create configuration file for Breakdancer based on bam file
-%.breakdancer/bd.cfg: %.bam
-	mkdir -p $(dir $@);
-	perl $(BAM2CFG) $? > $@;
-	cp $@ .;
 
 ## Create the native tabular output file for breakdancer
-%.breakdancer/bd.tsv: %.breakdancer/bd.cfg
-	$(BREAKDANCER_MAX) $? > $@;
+%.breakdancer/bd.tsv: $(BDCFG)
+	mkdir -p $(dir $@);
+	$(BREAKDANCER_MAX) $< > $@
 
 ## Convert the native tabular file for breakdancer to variant call format file
 %.breakdancer.vcf: %.breakdancer/bd.tsv
-	$(BD2VCF) $?; cp $(dir $<)bd.vcf $@
+	$(BD2VCF) $^; cp $(dir $<)bd.vcf $@
 
 .PHONY: install
 ## Tool installation

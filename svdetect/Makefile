@@ -55,7 +55,7 @@ all: $(OUT)
 # expect $(IN) = *.bam
 
 # Just for make -n
-%.bam:
+%.sam:
 	@
 	
 # print the chromosome sizes to svdetect fasta index.
@@ -65,20 +65,18 @@ all: $(OUT)
 # for the sake of clean working directories, rename original filename to sample.bam in svdetect workdir
 
 %.svdetect/.workdir: %.sam
-	mkdir -p $(dir $@); touch $@;
+	mkdir -p $(dir $@) && touch $@;
 
-# this will process the incoming bam, extract statistics (mu, signma)
-# reuse these stats for config file generation !!!
 %.svdetect/sample.bam: %.sam %.svdetect/.workdir
 	$(SAMTOOLS) view -bS -o $@ -@ $(THREADS) $< 
 
-%.svdetect/sample.ab.bam: %.svdetect/sample.bam %.svdetect/.workdir
+%.svdetect/sample.ab.bam: %.svdetect/sample.bam
 	$(SVDETECT_BAMPROCESSING) -o $(dir $@) $< > $(addsuffix stats.txt, $(dir $@) ) 2>&1
-%.svdetect/stats.txt:
+%.svdetect/stats.txt: %.svdetect/sample.bam
 	@
 
 %.svdetect/sample.sv.conf: %.svdetect/stats.txt %.svdetect.fai %.svdetect/sample.ab.bam
-	$(CREATE_CONFIG) -s $< -o $@ -r $(word 2, $^) -b $(word 3, $^) -t $(THREADS) -d $(dir $@)/results -e $(dir $@)/tmp
+	$(CREATE_CONFIG) -s $< -o $@ -r $(word 2, $^) -b $(word 3, $^) -t $(THREADS) -d $(dir $@)results -e $(dir $@)tmp
 
 %.svdetect/results/sample.ab.bam.all.links.filtered: %.svdetect/sample.ab.bam %.svdetect/sample.sv.conf
 	SGE_RREQ="-now no -pe $(SGE_PE) $(THREADS)" export PERL5LIB=$(SVDETECT_LIB_DIR):$$PERL5LIB;$(SVDETECT) linking filtering -conf $(lastword $^)
