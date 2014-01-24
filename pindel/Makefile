@@ -63,10 +63,6 @@ all: $(OUT)
 %.bam.bai:
 	@
 
-# expect $(IN) = %.sort.bam
-# Breakdancer configfile generation
-
-.SECONDEXPANSION:
 %.pindel/bd.cfg: %.bam %.bam.bai
 	mkdir -p $(dir $@);
 	$(BAM2CFG) $< > $@

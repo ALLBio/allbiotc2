@@ -18,7 +18,6 @@ include $(MAKEFILE_DIR)/modules.mk
 include $(MAKEFILE_DIR)/conf.mk
 export MAKEFILE_DIR THIS_MAKEFILE
 
-#MAKE := /data/DIV5/SASC/common/programs/sge/shake
 MAKE := make
 #######################
 #### Basic testing  ###
@@ -96,18 +95,24 @@ $(OUT_DIR):
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/fastqc.mk $@
 
 # FastQC for quality control
-%.raw_fastqc: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
-	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
+%.raw_fastqc/.created: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
+	mkdir -p $(dir $@) && touch $@
+
+%.raw_fastqc: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION) | %.raw_fastqc/.created
+	SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $(dir $@) && false)
 
 %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t sanger -o $(basename $(word 1, $^)).trimmed.$(FASTQ_EXTENSION) -p $(basename $(word 2, $^)).trimmed.$(FASTQ_EXTENSION) -s $(basename $(word 1, $^)).singles.$(FASTQ_EXTENSION) -q 30 -l 25 > $(basename $(word 1, $^)).filtersync.stats
-%$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): 
+%$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	@
 
 
 # FastQC to check trimming
-%.trimmed_fastqc: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
+%.trimmed_fastqc/.created: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
+	mkdir -p $(dir $@) && touch $@
+
+%.trimmed_fastqc: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION) | %.trimmed_fastqc/.created
+	SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $(dir $@) && false)
 
 #################
 ### Alignment ###
@@ -134,11 +139,11 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 ## Call the SV applications ##
 ##############################
 
-get_extension = $(lastword $(subst ., , $(basename $(value 1))))
+get_extension = $(subst .,,$(suffix $1))
 
 .SECONDEXPANSION:
 %.vcf: $$(basename $$(basename $$@ )).bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(call get_extension, $@)/Makefile REFERENCE=$(REFERENCE) $@
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(call get_extension, $(basename $@))/Makefile REFERENCE=$(REFERENCE) $@
 
 ##############################
 ## Create comparison report ##
