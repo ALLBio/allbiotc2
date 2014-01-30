@@ -1,3 +1,8 @@
+# Makefile - alignment for the AllBioTC2 pipeline
+#
+# (c) 2013 - Wai Yi Leung
+# (c) 2013 AllBio (see AUTHORS file)
+
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 $(info $(MAKEFILE_DIR))
 include $(MAKEFILE_DIR)/alignment.conf.mk
@@ -5,11 +10,9 @@ include $(MAKEFILE_DIR)/alignment.conf.mk
 include $(MAKEFILE_DIR)/../conf.mk
 
 %.sam: $(IN)
-	echo $(shell pwd)
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/aligners/$(ALIGNER).mk IN="$^" $@
 
-%.bam: $(IN)
-	echo $(shell pwd)
+%.bam: %.sam
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/aligners/$(ALIGNER).mk IN="$^" $@
 
 %.bam.bai: %.bam

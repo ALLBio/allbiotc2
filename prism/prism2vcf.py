@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 # prism2vcf.py
 # 
+__desc__ = """Converting PRISM output to VCF"""
+__author__ = "Mateusz Kuzak"
+
 import argparse
 import csv
 

@@ -1,6 +1,17 @@
-###	USAGE:
-###		python gasv2vcf.py [variants_file] [output_file] [BWA/BT2]
+#!/usr/bin/env python
+
+__copyright__ = """
+Copyright (C) 2013 AllBio (see AUTHORS file)
+"""
+
+__desc__ = """Convert GASV output to pseudo .vcf file format."""
+__created__ = "Mar 18, 2013"
+__author__ = "Xenofon Evangelopoulos"
+
+###    USAGE:
+###        python gasv2vcf.py [variants_file] [output_file] [BWA/BT2]
 ###
+
 import csv
 import sys
 
@@ -15,31 +26,33 @@ with open(variants_file, 'r') as ih:
     for attrs in reader:
         chrom = attrs[1]
         pos1 = attrs[2]
-	pos = pos1.split(',')[0]
+        pos = pos1.split(',')[0]
         end1 = attrs[4]
-	end =end1.split(',')[0]
+        end =end1.split(',')[0]
         id = "."
         ref = "."
-	vt = attrs[7]
-	if vt == "D":
+        vt = attrs[7]
+        if vt == "D":
             var_type = "DEL"
-	elif vt == "I":
+        elif vt == "I":
             var_type = "INV"
-	elif vt == "IR":
+        elif vt == "IR":
             var_type = "INV"
-	elif vt == "I+":
+        elif vt == "I+":
             var_type = "INV"
-	elif vt == "I-":
+        elif vt == "I-":
             var_type = "INV"
-	elif vt == "V":
+        elif vt == "V":
             var_type = "DIV"
-	elif vt == "T":
+        elif vt == "T":
             var_type = "TRN"
-	elif vt == "TR":
+        elif vt in ['TR', 'TR+', 'TR-', 'TR+1', 'TR-1', 'TR+2', 'TR-2',]:
             var_type = "TRN"
-	elif vt == "TN":
-            var_type = "TRN"       
-	qual = "."
+        elif vt in ['TN', 'TN+', 'TN-', 'TN+1', 'TN-1', 'TN+2', 'TN-2',]:
+            var_type = "TRN"
+        else:
+            var_type = "UNKNOWN"
+        qual = "."
         alt = "."
         filt = "PASS"
         var_len = int(end) - int(pos)

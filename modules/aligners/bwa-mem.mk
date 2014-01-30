@@ -1,3 +1,7 @@
+# Makefile - bwa module
+#
+# (c) 2013 - Wai Yi Leung
+
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 include $(MAKEFILE_DIR)/bwa-mem.conf.mk
 include $(MAKEFILE_DIR)/../../conf.mk

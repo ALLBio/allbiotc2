@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-'''
-Convert breakdancer output to pseudo .vcf file format.
+__copyright__ = """
+Copyright (C) 2013 - Tim te Beek
+Copyright (C) 2013 AllBio (see AUTHORS file)
+"""
 
-Created on Mar 18, 2013
-
-@author: tbeek
-'''
+__desc__ = """Convert breakdancer output to pseudo .vcf file format."""
+__created__ = "Mar 18, 2013"
+__author__ = "tbeek"
 
 import csv
 import os.path
@@ -43,6 +44,7 @@ def _parse_tsvfile(readable):
     while True:
         line = readable.readline()
         if not line.startswith('#'):
+            # lets start from prev # line, without the hash sign
             readable.seek(prev + 1)
             break
         else:
@@ -51,7 +53,8 @@ def _parse_tsvfile(readable):
 
     # Determine dialect
     curr = readable.tell()
-    dialect = csv.Sniffer().sniff(readable.read(3000))
+    #dialect = csv.Sniffer().sniff(readable.read(3000))
+    dialect = 'excel-tab'
     readable.seek(curr)
 
     # Read file

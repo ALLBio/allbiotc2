@@ -17,7 +17,7 @@ SGE_PE = BWA
 .SECONDARY:
 
 # Delete target if recipe returns error status code.
-.DELETE_ON_ERROR:
+#.DELETE_ON_ERROR:
 
 # Makefile specific settings
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
@@ -33,8 +33,10 @@ PROGRAMS_DIR := /virdir/Scratch/software
 include $(MAKEFILE_DIR)/../conf.mk
 
 # SVDetect
-SVDETECT_DIR := $(PROGRAMS_DIR)/SVDetect_r0.8b
-SVDETECT_LIB_DIR := $(PROGRAMS_DIR)/SVDetect_r0.8b/lib
+SVDETECT_VERSION := SVDetect_r0.8b
+SVDETECT_DIR := $(PROGRAMS_DIR)/svdetect/$(SVDETECT_VERSION)
+SVDETECT_LIB_DIR := $(SVDETECT_DIR)/lib
+
 SVDETECT := $(SVDETECT_DIR)/bin/SVDetect
 SVDETECT_BAMPROCESSING := perl $(SVDETECT_DIR)/scripts/BAM_preprocessingPairs.pl
 SVDETECT2VCF := python $(THIS_MAKEFILE_DIR)/svdetect2vcf.py
@@ -52,27 +54,29 @@ all: $(OUT)
 
 # expect $(IN) = *.bam
 
+# Just for make -n
+%.sam:
+	@
+	
 # print the chromosome sizes to svdetect fasta index.
 %.svdetect.fai: $(REFERENCE).fai
-	awk '{print $$1,$$1,$$2}' $< >$@
+	awk '{print NR,$$1,$$2}' $< >$@
 
 # for the sake of clean working directories, rename original filename to sample.bam in svdetect workdir
 
 %.svdetect/.workdir: %.sam
-	mkdir -p $(dir $@); touch $@;
+	mkdir -p $(dir $@) && touch $@;
 
-# this will process the incoming bam, extract statistics (mu, signma)
-# reuse these stats for config file generation !!!
 %.svdetect/sample.bam: %.sam %.svdetect/.workdir
 	$(SAMTOOLS) view -bS -o $@ -@ $(THREADS) $< 
 
-%.svdetect/sample.ab.bam: %.svdetect/sample.bam %.svdetect/.workdir
+%.svdetect/sample.ab.bam: %.svdetect/sample.bam
 	$(SVDETECT_BAMPROCESSING) -o $(dir $@) $< > $(addsuffix stats.txt, $(dir $@) ) 2>&1
-%.svdetect/stats.txt:
+%.svdetect/stats.txt: %.svdetect/sample.bam
 	@
 
 %.svdetect/sample.sv.conf: %.svdetect/stats.txt %.svdetect.fai %.svdetect/sample.ab.bam
-	$(CREATE_CONFIG) -s $< -o $@ -r $(word 2, $^) -b $(word 3, $^) -t $(THREADS) -d $(dir $@)/results -e $(dir $@)/tmp
+	$(CREATE_CONFIG) -s $< -o $@ -r $(word 2, $^) -b $(word 3, $^) -t $(THREADS) -d $(dir $@)results -e $(dir $@)tmp
 
 %.svdetect/results/sample.ab.bam.all.links.filtered: %.svdetect/sample.ab.bam %.svdetect/sample.sv.conf
 	SGE_RREQ="-now no -pe $(SGE_PE) $(THREADS)" export PERL5LIB=$(SVDETECT_LIB_DIR):$$PERL5LIB;$(SVDETECT) linking filtering -conf $(lastword $^)

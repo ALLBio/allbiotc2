@@ -1,8 +1,7 @@
-# preprocess-bwa.mk
+# Makefile - main file for the AllBioTC2 pipeline
 #
-# Makefile for preprocessing FastQ files -- Part of pipeline for ALLBioTC2
-#
-# (c) 2013 by Wai Yi Leung [SASC-LUMC]
+# (c) 2013 - Wai Yi Leung
+# (c) 2013 AllBio (see AUTHORS file)
 # 
 # Adapted makefile configuration from Wibowo Arindrarto [SASC-LUMC]
 # 
@@ -15,14 +14,16 @@
 # Load all module definition
 # Makefile specific settings
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
-THIS_MAKEFILE = $(lastword $(MAKEFILE_LIST))
-SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
+THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
+.ONESHELL:
+#SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
 include $(MAKEFILE_DIR)/modules.mk
 include $(MAKEFILE_DIR)/conf.mk
 export MAKEFILE_DIR THIS_MAKEFILE
 
+MAKE := make
 #######################
-#### Basic checking ###
+#### Basic testing  ###
 #######################
 
 # only check the variable in non-install goals
@@ -38,14 +39,14 @@ endif
 #######################
  
 
-all: data_generation fastqc alignment aligmentstats sv_vcf report 
+all: data_generation fastqc trimming alignment breakdancer_config aligmentstats sv_vcf report 
 
 ##############################
 ### Generate reference VCF ###
 ##############################
 
+ifeq ($(MAKECMDGOALS),preprocess)
 preprocess: $(REFERENCE_VCF)
-
 $(REFERENCE_VCF): $(SDI_FILE)
 	python $(MAKEFILE_DIR)/sdi-to-vcf/sdi-to-vcf.py -p $^ $(REFERENCE) > $@
 
@@ -58,47 +59,25 @@ data_generation: $(SAMPLE)$(PEA_MARK).$(FASTQ_EXTENSION)
 %.$(FASTQ_EXTENSION): 
 	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/data_generation/makefile
 
-#################
-### Alignment ###
-#################
-
-BAM_FILES = $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE))
-
-alignment: $(addprefix $(OUT_DIR)/, $(BAM_FILES))
-
-aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
-
-%.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
-
-%.bam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
-
-%.bam.bai: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
-
-%.flagstat: %.bam
-	$(MAKE) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
-
 ###############
 ### Targets ###
 ###############
 
 # outputdir for all recipies:
+SV_PROGRAMS := gasv delly breakdancer pindel clever svdetect prism meerkat
+SV_OUTPUT := $(addprefix $(OUT_DIR)/, $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf)))
+sv_vcf: $(SV_OUTPUT)
 
-SV_PROGRAMS := clever delly bd prism gasv pindel meerkat
-SV_OUTPUT := $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
-SV_OUTPUT_2 := $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
-sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 # Partial recipies
 qc: $(addsuffix .fastqc, $(SINGLES))
-FASTQC_FILES = $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS)) $(addsuffix .trimmed.fastq, $(SINGLES))
+TRIMMED_FASTQ_FILES := $(addsuffix .trimmed.$(FASTQ_EXTENSION), $(SINGLES))
+trimming: $(TRIMMED_FASTQ_FILES)
+FASTQC_FILES := $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
 report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE))) $(addprefix $(OUT_DIR)/, $(addsuffix .report.tex, $(SAMPLE)))
 
 # settings for reporting
-EVALUATE_PREDICTIONS := ~/virtualenv-1.10.1/myVE/bin/python $(MAKEFILE_DIR)/evaluation/evaluate-sv-predictions2
-
+EVALUATE_PREDICTIONS := $(PYTHON_EXE) $(MAKEFILE_DIR)/evaluation/evaluate-sv-predictions2
 
 #########################
 ### Debug targets     ###
@@ -112,6 +91,7 @@ test:
 	echo $(MAKEFILE_DIR)
 	echo $(SV_OUTPUT)
 	echo $(SAMPLE)
+	echo $(OUT_DIR)
 
 #########################
 ### Rules and Recipes ###
@@ -125,48 +105,71 @@ $(OUT_DIR):
 	$(MAKE) -f $(MAKEFILE_DIR)/modules/fastqc.mk $@
 
 # FastQC for quality control
-%.raw_fastqc: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
-	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
+%.raw_fastqc/.created: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
+	mkdir -p $(dir $@) && touch $@
+
+%.raw_fastqc: %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION) | %.raw_fastqc/.created
+	SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $(dir $@) && false)
 
 %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
-	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t sanger -o $(basename $(word 1, $^)).trimmed.fastq -p $(basename $(word 2, $^)).trimmed.fastq -s $(basename $(word 1, $^)).singles.fastq -q 30 -l 25 > $(basename $(word 1, $^)).filtersync.stats
-
 %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): 
+	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t sanger -o $(basename $(word 1, $^)).trimmed.$(FASTQ_EXTENSION) -p $(basename $(word 2, $^)).trimmed.$(FASTQ_EXTENSION) -s $(basename $(word 1, $^)).singles.$(FASTQ_EXTENSION) -q 30 -l 25 > $(basename $(word 1, $^)).filtersync.stats
+%$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	@
 
 # FastQC to check trimming
-%.trimmed_fastqc: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
-	mkdir -p $@ && (SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $@ && false))
+%.trimmed_fastqc/.created: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
+	mkdir -p $(dir $@) && touch $@
+
+%.trimmed_fastqc: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION) | %.trimmed_fastqc/.created
+	SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $(dir $@) && false)
+
+#################
+### Alignment ###
+#################
+
+BAM_FILES := $(addprefix $(OUT_DIR)/, $(addsuffix .sam, $(SAMPLE)) $(addsuffix .bam, $(SAMPLE)) $(addsuffix .bam.bai, $(SAMPLE)))
+alignment: $(BAM_FILES)
+aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
+
+%.sam: %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION) %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION)
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+
+%.bam: %.sam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+
+%.bam.bai: %.bam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+
+%.flagstat: %.bam
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/modules/alignment.mk $@
+
+##############################
+## Precompute a dependency  ##
+##############################
+
+breakdancer_config: $(addprefix $(OUT_DIR)/, $(addsuffix .bd.cfg, $(SAMPLE)) )
+BREAKDANCER_VERSION := breakdancer-v1.4.4
+BREAKDANCER_CFG_VERSION := breakdancer-max1.4.4
+
+## Paths to tools used
+BREAKDANCER_DIR := $(PROGRAMS_DIR)/breakdancer/$(BREAKDANCER_VERSION)
+BAM2CFG := $(BREAKDANCER_DIR)/lib/$(BREAKDANCER_CFG_VERSION)/bam2cfg.pl
+
+## Create configuration file for Breakdancer based on bam file
+%.bd.cfg: %.bam
+	perl $(BAM2CFG) $? > $@;
 
 
 ##############################
 ## Call the SV applications ##
 ##############################
 
-%.meerkat.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/meerkat/makefile REFERENCE=$(REFERENCE) DATA_BAM=$< $@
+get_extension = $(subst .,,$(suffix $1))
 
-%.bd.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/breakdancer/Makefile REFERENCE=$(REFERENCE) $@
-
-%.pindel.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/pindel/Makefile REFERENCE=$(REFERENCE) PINDEL_DIR=../software/pindel/pindel_0.2.5a1 $@
-
-%.delly.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/delly/Makefile REFERENCE=$(REFERENCE) $@
-
-%.prism.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/prism/Makefile REFERENCE=$(REFERENCE) $@
-
-%.gasv.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/gasv/makefile REFERENCE=$(REFERENCE) $@
-
-%.clever.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/clever/Makefile REFERENCE=$(REFERENCE) IN=$< VERSION=$(CLEVER_VERSION) $@
-
-%.svdetect.vcf: %.bam
-	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/svdetect/makefile REFERENCE=$(REFERENCE) IN=$< $@
-
+.SECONDEXPANSION:
+%.vcf: $$(basename $$(basename $$@ )).bam $$(basename $$(basename $$@ )).bam.bai $$(basename $$(basename $$@ )).bd.cfg
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(call get_extension, $(basename $@))/Makefile REFERENCE=$(REFERENCE) BDCFG=$(lastword $^) DATABAM=$< $@
 
 ##############################
 ## Create comparison report ##
@@ -188,7 +191,7 @@ $(OUT_DIR):
 install:
 	echo Install python packages for the pipeline
 	sudo apt-get install python-biopython
-	
+	$(foreach program, $(SV_PROGRAMS), $(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/$(program)/Makefile install)
 
 .PHONY: help
 help:

@@ -1,4 +1,9 @@
 #!/usr/bin/perl
+
+#
+# (c) 2013 - Yael Moaz
+# (c) 2013 AllBio (see AUTHORS file)
+
 # modify delly output
 # perl delly-extract-convert.pl delly-duplication.txt > output.vcf
 use strict;

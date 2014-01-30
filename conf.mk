@@ -1,3 +1,9 @@
+# conf.mk - Pipeline configuration for AllBioTC2
+#
+# (c) 2013 - Wai Yi Leung
+# (c) 2013 AllBio (see AUTHORS file)
+# 
+# Adapted makefile configuration from Wibowo Arindrarto [SASC-LUMC]
 
 ########################
 ### Pipeline Setting ###
@@ -37,13 +43,14 @@ GENOME_FILE := genome.fasta
 #####################
 
 # Programs folder for custom software. 
-PROGRAMS := /virdir/Scratch/software
+PROGRAMS := /opt/allbio/software/
 PROGRAMS_DIR := $(PROGRAMS)
 
 # laser
 LASER := $(PROGRAMS)/laser/clever-toolkit-v2.0rc2/bin/laser
 
 # BWA. 
+BWA_VERSION=bwa-v0.7.5a
 BWA = $(BWA_DIR)/bwa
 
 # BOWTIE2. 
@@ -51,7 +58,7 @@ BOWTIE2_DIR := $(PROGRAMS)/bowtie2-2.1.0
 BOWTIE2 := $(BOWTIE2_DIR)/bowtie2
 
 # Dependencies
-BWA_DIR := $(PROGRAMS)/bwa-0.7.4
+BWA_DIR := $(PROGRAMS)/bwa/$(BWA_VERSION)
 BWA_THREADS := 4
 BWA_MAX_INSERT_SIZE := 500 #[500]
 
@@ -62,27 +69,35 @@ BWA_ALN_OPTIONS := -t $(BWA_OPTION_THREADS)
 BWA_SAMPE_OPTIONS := -n25 -N25
 
 # FastQC 
-FASTQC_DIR := $(PROGRAMS)/FastQC
+FASTQC_VERSION := fastqc_v0.10.1
+FASTQC_DIR := $(PROGRAMS)/FastQC/$(FASTQC_VERSION)
 FASTQC := $(FASTQC_DIR)/fastqc
 FASTQC_THREADS := 4
 
 # Sickle
-SICKLE_DIR := $(PROGRAMS)/sickle-master
+SICKLE_VERSION := sickle-v1.2.1
+SICKLE_DIR := $(PROGRAMS)/sickle/$(SICKLE_VERSION)
 SICKLE := $(SICKLE_DIR)/sickle
 
 # Samtools.
-SAMTOOLS_DIR := $(PROGRAMS)/samtools-0.1.19
+SAMTOOLS_VERSION := samtools-v0.1.19
+SAMTOOLS_DIR := $(PROGRAMS)/samtools/$(SAMTOOLS_VERSION)
 SAMTOOLS := $(SAMTOOLS_DIR)/samtools
 
+# Python, can be changed to a version which is not installed with the system
+# for example, a version which is installed in a virtualenv with the required
+# libraries. For information about venv's: http://www.virtualenv.org/
+
+PYTHON_EXE := python
 
 ####################
 ### Dependencies ###
 ####################
 
 # References
-REFERENCE_DIR = $(MAKEFILE_DIR)/reference
-REFERENCE_BWA = $(REFERENCE_DIR)/bwa/reference.fa
-REFERENCE_BOWTIE2 = $(REFERENCE_DIR)/bowtie2/reference
+REFERENCE_DIR := $(MAKEFILE_DIR)/reference
+REFERENCE_BWA := $(REFERENCE_DIR)/bwa/reference.fa
+REFERENCE_BOWTIE2 := $(REFERENCE_DIR)/bowtie2/reference
 REFERENCE := $(REFERENCE_DIR)/reference.fa
 
 # meerkat reference files
@@ -107,7 +122,7 @@ FASTQ_EXTENSION := fastq
 QSCORE_FORMAT := sanger
 THREADS := 8
 
-ALIGNER = bwa-mem
+ALIGNER := bwa-mem
 
 # input directory, defaults to current directory
 IN_DIR := $(shell pwd)
