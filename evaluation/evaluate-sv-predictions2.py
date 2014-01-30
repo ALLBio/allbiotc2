@@ -230,13 +230,15 @@ class VariationList:
 					# alter the chrB, populate with information from ALT
 					# format: [chrB:posB[
 #					print(re.findall(r'([\w\d]+)\:([\d]+)', alt, re.I | re.M))
-					chrB, posB = re.findall(r'([\w\d]+)\:([\d]+)', alt, re.I | re.M)[0]
 					
-				if info_fields['SVTYPE'] in ['DEL', 'INS']:
+					
+				if info_fields['SVTYPE'] in ['DEL', 'INS','del','ins']:
+					chrB, posB = re.findall(r'([\w\d]+)\:([\d]+)', alt, re.I | re.M)[0]
 					sv_coords = [int(fields[1]), int(posB)]
 					sv_coords.sort()
 					svlen = sv_coords[1] - sv_coords[0]
 					info_fields['SVLEN'] = svlen
+					pass
 				alt = '.'
 				ref = '.'
 			if (alt == '.') or (ref == '.'):
@@ -1339,7 +1341,7 @@ def print_results_ascii(results, length_ranges, true_indel_counts, print_typing)
 				print(right_pad(tool_stats.name,w0), left_pad(str(tool_stats.deletion_count),w), format_value(tool_stats.deletion_precision,w), format_value(tool_stats.deletion_mix_hits,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
 	print('='*wt)
 
-def print_results_latex(results, length_ranges, true_indel_counts,translocation_table):
+def print_results_latex(results, length_ranges, true_indel_counts):
 	"""Input: list with a lists of ToolStatistics for each length range."""
 	assert len(results) == len(length_ranges)
 	# width of first column
@@ -1395,7 +1397,6 @@ def print_results_latex(results, length_ranges, true_indel_counts,translocation_
 			sep=' & ', end='\\\\\n')
 		print('\hline')
 	print('\\end{longtable}')
-	print('\\input '+translocation_table)
 	print('\\subsection{Table Legend}')
 	print('\\begin{itemize}')
 	print('\\item \\textbf{Abs.:} \\emph{Absolute number} of predictions made in this length range')
@@ -1493,7 +1494,7 @@ def main():
 				     help='Operation mode: "fixed_distance" or "overlap" or "significant" (default: "fixed_distance").')
 	hit_count_options.add_option("-c", action="store", dest="chromosomes", default=None,
 				     help="Comma separated list of chromosomes to consider (default: all).")
-	hit_count_options.add_option("-R", action="store", dest="length_ranges", default="10-19,20-49,50-99,100-249,250-999,1000-50000",
+	hit_count_options.add_option("-R", action="store", dest="length_ranges", default="9-18,19-48,49-98,99-248,249-998,999-50000",
 				     help="Comma-separated list of length ranges to be evaluated separately (default: \"10-19,20-49,50-99,100-249,250-999,1000-50000\").")
 	hit_count_options.add_option("-o", action="store", dest="offset", type=int, default=50,
 				     help="Allowed distance of centers of prediction and annotation in mode \"fixed_distance\"; has no effect in other modes (default: 50).")
@@ -1532,7 +1533,7 @@ def main():
 	parser.add_option_group(output_options)
 
 	(options, args) = parser.parse_args()
-	if (len(args) < 3):
+	if (len(args) < 2):
 		parser.print_help()
 		sys.exit(1)
 	if options.plot_directory != None:
@@ -1543,9 +1544,8 @@ def main():
 		matplotlib.use('pdf')
 	print('Reading file', args[0], file=sys.stderr)
 	true_variants = VariationList(args[0], options.trio)
-	translocation_table = args[1]
 	predictions_lists = []
-	filenames = args[2:]
+	filenames = args[1:]
 
 	for filename in filenames:
 		print('Reading file', filename, file=sys.stderr)
@@ -1558,7 +1558,9 @@ def main():
 		for predictions in predictions_lists:
 			chromosomes.update(predictions.get_chromosomes())
 	if options.tool_names == None:
-		tool_names = args[2:]
+		tool_names = args[1:]
+		for n,name in enumerate(tool_names):
+		  	tool_names[n] = os.path.basename(name)
 	else:
 		tool_names = options.tool_names.strip().split(',')
 		if len(tool_names) != len(predictions_lists):
@@ -1619,7 +1621,7 @@ def main():
 		print('\\begin{lstlisting}')
 		print(' '.join(sys.argv))
 		print('\\end{lstlisting}')
-		print_results_latex(results, length_ranges, true_indel_counts, translocation_table)
+		print_results_latex(results, length_ranges, true_indel_counts)
 	else:
 		print('command line:',' '.join(sys.argv))
 		if options.triomode == "membership":

@@ -231,16 +231,13 @@ class VariationList:
 					# alter the chrB, populate with information from ALT
 					# format: [chrB:posB[
 #					print(re.findall(r'([\w\d]+)\:([\d]+)', alt, re.I | re.M))
+				if info_fields['SVTYPE'] in ['DEL', 'INS', 'del', 'ins'] and posB:
 					chrB, posB = re.findall(r'([\w\d]+)\:([\d]+)', alt, re.I | re.M)[0]
-				if info_fields['SVTYPE'] in ['DEL', 'INS'] and posB:
 					if not 'SVLEN' in info_fields.keys():
 						sv_coords = [int(fields[1]), int(posB)]
 						sv_coords.sort()
 						svlen = sv_coords[1] - sv_coords[0]
 						info_fields['SVLEN'] = svlen
-				alt = '.'
-				ref = '.'
-			if (alt in ['<DEL>', '<INS>']):
 				alt = '.'
 				ref = '.'
 			if (alt == '.') or (ref == '.'):
