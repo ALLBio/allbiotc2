@@ -1,0 +1,2 @@
+#!/bin/bash
+java -Xmx2048m -jar /data/DIV5/SASC/spvanleeuwen/sv_benchmark_pipeline/software/simseq-git/SimSeqNBProject/store/SimSeq.jar $@

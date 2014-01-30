@@ -27,7 +27,6 @@ include $(MAKEFILE_DIR)/../conf.mk
 
 # clever
 CLEVER_DIR := $(PROGRAMS_DIR)/clever$(VERSION)/bin
-$(info $(CLEVER_DIR))
 CLEVER := $(CLEVER_DIR)/clever
 
 

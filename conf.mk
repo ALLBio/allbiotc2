@@ -17,6 +17,21 @@ PWD = $(shell pwd)
 THIS_MAKEFILE = $(firstword $(MAKEFILE_LIST))
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
+#(test) data generation configuration
+
+GENERATE_DATA := TRUE
+DATA_PREFIX := sim-reads
+INSERT_SIZE := 500
+SD := 50
+READLENGTH := 100
+COVERAGE := 30
+DUPLICATE := 0.01
+TOTALREADLENGTH= $(shell expr 2 \* $(READLENGTH))
+GENOMELENGTH := 119667750
+READCOUNT= $(shell expr $(COVERAGE) \* $(GENOMELENGTH) / $(TOTALREADLENGTH))
+DATASET=$(INSERT_SIZE)_$(SD)
+GENOME_FILE := genome.fasta	
+
 #####################
 ### Used Programs ###
 #####################
@@ -24,6 +39,9 @@ MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 # Programs folder for custom software. 
 PROGRAMS := /virdir/Scratch/software
 PROGRAMS_DIR := $(PROGRAMS)
+
+# laser
+LASER := $(PROGRAMS)/laser/clever-toolkit-v2.0rc2/bin/laser
 
 # BWA. 
 BWA = $(BWA_DIR)/bwa
@@ -93,11 +111,19 @@ ALIGNER = bwa-mem
 
 # input directory, defaults to current directory
 IN_DIR := $(shell pwd)
-
+#if data needs to be generated first there are no samples in the input directory!!
+ifneq ($(GENERATE_DATA) , TRUE)
 SAMPLE := $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) | python -c 'import os; import sys; print os.path.commonprefix(list(sys.stdin)).split(".")[0]')
 PAIRS := $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) | sed 's/$(PEA_MARK).$(FASTQ_EXTENSION)//')
 SINGLES := $(basename $(shell ls *$(PEA_MARK).$(FASTQ_EXTENSION) *$(PEB_MARK).$(FASTQ_EXTENSION)))
+endif
 
+#Compose filenames from configuration parameters
+ifeq ($(GENERATE_DATA) , TRUE)
+SAMPLE := $(DATA_PREFIX)_$(DATASET)
+PAIRS := $(DATA_PREFIX)_$(DATASET)
+SINGLES := $(DATA_PREFIX)_$(DATASET)$(PEA_MARK)$(DATA_PREFIX)_$(DATASET)$(PEB_MARK)
+endif
 # root output directory, defaults to input directory
 ROOT_OUT_DIR := $(IN_DIR)
 

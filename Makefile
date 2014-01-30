@@ -33,13 +33,12 @@ ifeq ($(MAKECMDGOALS),preprocess)
 $(if $(SDI_FILE),,$(error SDI_FILE is a required value))
 endif
 
-
 #######################
 ### General Targets ###
 #######################
  
 
-all: fastqc alignment aligmentstats sv_vcf report 
+all: data_generation fastqc alignment aligmentstats sv_vcf report 
 
 ##############################
 ### Generate reference VCF ###
@@ -49,6 +48,15 @@ preprocess: $(REFERENCE_VCF)
 
 $(REFERENCE_VCF): $(SDI_FILE)
 	python $(MAKEFILE_DIR)/sdi-to-vcf/sdi-to-vcf.py -p $^ $(REFERENCE) > $@
+
+######################
+## Data generation ###
+######################
+
+data_generation: $(SAMPLE)$(PEA_MARK).$(FASTQ_EXTENSION)
+
+%.$(FASTQ_EXTENSION): 
+	$(MAKE) -C $(PWD) -f $(MAKEFILE_DIR)/data_generation/makefile
 
 #################
 ### Alignment ###
@@ -78,7 +86,7 @@ aligmentstats: $(addprefix $(OUT_DIR)/, $(addsuffix .flagstat, $(SAMPLE)) )
 
 # outputdir for all recipies:
 
-SV_PROGRAMS := meerkat clever delly bd prism pindel gasv
+SV_PROGRAMS := clever delly bd prism gasv pindel meerkat
 SV_OUTPUT := $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf))
 SV_OUTPUT_2 := $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))
 sv_vcf: $(addprefix $(OUT_DIR)/, $(SV_OUTPUT))

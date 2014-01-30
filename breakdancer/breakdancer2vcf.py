@@ -92,6 +92,10 @@ def _format_vcffile(dictreader, vcffile):
         writer.write('#{}\n'.format('\t'.join(_vcf_fields)))
         for line in dictreader:
             CHROM = line['Chr1']
+	    try:
+	        CHROM2 = line['Chr2']
+	    except:
+		CHROM2 = CHROM
             # TODO Figure out whether we have zero or one based positioning
             POS = int(line['Pos1'])
             SVEND = int(line['Pos2'])
@@ -101,8 +105,7 @@ def _format_vcffile(dictreader, vcffile):
                 INFO += ";SVEND={}".format(SVEND)
 
             # Create record
-            output = '{}\t{}\t.\t.\t.\t.\tPASS\t{}\n'.format(CHROM, POS, INFO)
-
+            output = '{}\t{}\t.\t.\t{}{}{}{}{}\t.\tPASS\t{}'.format(CHROM, POS,']',CHROM2,':',SVEND,']', INFO)
             # Write record
             writer.write(output)
 
