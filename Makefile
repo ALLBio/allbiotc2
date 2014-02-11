@@ -64,7 +64,7 @@ TRIMMED_FASTQ_FILES := $(addsuffix .trimmed.$(FASTQ_EXTENSION), $(SINGLES))
 trimming: $(TRIMMED_FASTQ_FILES)
 FASTQC_FILES := $(addsuffix .raw_fastqc, $(PAIRS)) $(addsuffix .trimmed_fastqc, $(PAIRS))
 fastqc: $(addprefix $(OUT_DIR)/, $(FASTQC_FILES))
-report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)))
+report: $(addprefix $(OUT_DIR)/, $(addsuffix .report.pdf, $(SAMPLE)) $(addsuffix .report.tex, $(SAMPLE)))
 
 # settings for reporting
 EVALUATE_PREDICTIONS := $(PYTHON_EXE) $(MAKEFILE_DIR)/evaluation/evaluate-sv-predictions2
@@ -103,7 +103,7 @@ $(OUT_DIR):
 	SGE_RREQ="-now no -pe $(SGE_PE) $(FASTQC_THREADS)" $(FASTQC) --format fastq -q -t $(FASTQC_THREADS) -o $@ $^ || (rm -Rf $(dir $@) && false)
 
 %$(PEA_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
-	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t sanger -o $(basename $(word 1, $^)).trimmed.$(FASTQ_EXTENSION) -p $(basename $(word 2, $^)).trimmed.$(FASTQ_EXTENSION) -s $(basename $(word 1, $^)).singles.$(FASTQ_EXTENSION) -q 30 -l 25 > $(basename $(word 1, $^)).filtersync.stats
+	$(SICKLE) pe -f $(word 1, $^) -r $(word 2, $^) -t $(QSCORE_FORMAT) -o $(basename $(word 1, $^)).trimmed.$(FASTQ_EXTENSION) -p $(basename $(word 2, $^)).trimmed.$(FASTQ_EXTENSION) -s $(basename $(word 1, $^)).singles.$(FASTQ_EXTENSION) -q $(MIN_TRIM_PHRED_QUAL) -l $(MIN_TRIM_READLENGTH) > $(basename $(word 1, $^)).filtersync.stats
 %$(PEB_MARK).trimmed.$(FASTQ_EXTENSION): %$(PEA_MARK).$(FASTQ_EXTENSION) %$(PEB_MARK).$(FASTQ_EXTENSION)
 	@
 
@@ -172,6 +172,10 @@ get_extension = $(subst .,,$(suffix $1))
 
 %.report.pdf: %.report.tex
 	pdflatex $^ && pdflatex $^
+%.report.log: %.report.tex
+	@
+%.report.aux: %.report.tex
+	@
 
 
 ####################################

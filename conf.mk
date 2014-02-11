@@ -95,6 +95,11 @@ FASTQ_EXTENSION := fastq
 QSCORE_FORMAT := sanger
 THREADS := 8
 
+# Set options for trimming
+MIN_TRIM_PHRED_QUAL := 30
+MIN_TRIM_READLENGTH := 25
+
+
 ALIGNER := bwa-mem
 
 # input directory, defaults to current directory

@@ -264,7 +264,9 @@ class VariationList:
 					indices = [indices]
 				for index in indices:
 					toolstring += "%s," % (tool_names[index])
-				infostring = "SVTYPE=%s:TOOLS=%s:MAXDIST=%d:MAXLENDIFF=%d" % (var_type, toolstring, maxdist, maxlendiff)
+				# FIXME: fix last comma
+				toolstring = toolstring[:-1]
+				infostring = "SVTYPE=%s;TOOLS=%s;MAXDIST=%d;MAXLENDIFF=%d" % (var_type, toolstring, maxdist, maxlendiff)
 				vcfline = "%s\t%d\t.\t%s\t%s\t.\tPASS\t%s" % (chrom, start, ref, alt, infostring)
 				print(vcfline, file=outfile)
 
@@ -324,6 +326,9 @@ class DeletionList(VariationList):
 					svlen = abs(int(info_fields['SVLEN']))
 					coord1 = int(fields[1]) - 1
 					coord2 = svlen
+				else:
+					# We dont have support for unknown info_fields['SVTYPE']
+					continue
 			else:
 				if (not valid_dna_string(ref)) or (not valid_dna_string(alt)):
 					continue
@@ -543,7 +548,8 @@ class DeletionList(VariationList):
 		merged_deletions = defaultdict(list)
 #		strangeguys = defaultdict(list)
 
-		mergelog = open("merge.log", 'w')
+#		mergelog = open("merge.log", 'w')
+		mergelog = open(os.devnull, 'w')
 
 		def merge_deletions_in_clique(clique):
 			maxdist = 0
