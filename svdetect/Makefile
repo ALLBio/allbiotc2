@@ -85,4 +85,4 @@ all: $(OUT)
 	SGE_RREQ="-now no -pe $(SGE_PE) $(THREADS)" export PERL5LIB=$(SVDETECT_LIB_DIR):$$PERL5LIB;$(SVDETECT) links2SV -conf $(lastword $^)
 
 %.svdetect.vcf: %.svdetect/results/sample.ab.bam.all.links.filtered.sv.txt $(REFERENCE)
-	$(SVDETECT2VCF) -f $< -r $(lastword $^) > $@
+	$(SVDETECT2VCF) -f $< -r $(lastword $^)  | sort -k1,1n -k2,2n > $@
