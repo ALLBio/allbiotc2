@@ -49,7 +49,7 @@ $(BDCFG):
 
 ## Convert the native tabular file for breakdancer to variant call format file
 %.breakdancer.vcf: %.breakdancer/bd.tsv
-	$(BD2VCF) $^; cp $(dir $<)bd.vcf $@
+	$(BD2VCF) -i $< -o $@
 
 .PHONY: install
 ## Tool installation

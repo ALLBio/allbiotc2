@@ -2,6 +2,7 @@
 
 __copyright__ = """
 Copyright (C) 2013 - Tim te Beek
+Copyright (C) 2013 - Wai Yi Leung
 Copyright (C) 2013 AllBio (see AUTHORS file)
 """
 
@@ -9,6 +10,7 @@ __desc__ = """Convert breakdancer output to pseudo .vcf file format."""
 __created__ = "Mar 18, 2013"
 __author__ = "tbeek"
 
+import argparse
 import csv
 import os.path
 import sys
@@ -80,7 +82,7 @@ _tsv_fields = ('Chr1', 'Pos1', 'Orientation1',
 # 'num_Reads_lib': '/home/allbio/ERR031544.sort.bam|38',
 # 'ERR031544.sort.bam': 'NA'
 
-_vcf_fields = ('CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUALITY', 'FILTER', 'INFO')
+_vcf_fields = ('CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO')
 
 
 def _format_vcffile(dictreader, vcffile):
@@ -91,8 +93,9 @@ def _format_vcffile(dictreader, vcffile):
     :param vcffile: output file.vcf filename
     :type vcffile: string
     '''
-    with open(vcffile, mode='w')as writer:
+    with open(vcffile, mode='w') as writer:
         writer.write('#{}\n'.format('\t'.join(_vcf_fields)))
+        output_vcf = []
         for line in dictreader:
             CHROM = line['Chr1']
             # TODO Figure out whether we have zero or one based positioning
@@ -104,15 +107,21 @@ def _format_vcffile(dictreader, vcffile):
                 INFO += ";SVEND={}".format(SVEND)
 
             # Create record
-            output = '{}\t{}\t.\t.\t.\t.\tPASS\t{}\n'.format(CHROM, POS, INFO)
+            output_vcf.append([CHROM, POS, '.', '.', '.', '.', 'PASS', INFO])
 
-            # Write record
-            writer.write(output)
+        # Sort all results
+        output_vcf.sort()
+        output = "\n".join(["\t".join(map(str,vcf_row)) for vcf_row in output_vcf])
+        # Write record
+        writer.write(output)
 
 
 if __name__ == '__main__':
-    _tsvfile = 'data/ERR031544.sort.bam.tsv'
-    if len(sys.argv) == 2:
-        _tsvfile = sys.argv[1]
-    _vcffile = os.path.splitext(_tsvfile)[0] + '.vcf'
-    main(_tsvfile, _vcffile)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--breakdancertsv', dest='breakdancertsv', type=str,
+            help='Breakdancer TSV outputfile')
+    parser.add_argument('-o', '--outputvcf', dest='outputvcf', type=str,
+            help='Output vcf to')
+
+    args = parser.parse_args()
+    main(args.breakdancertsv, args.outputvcf)
