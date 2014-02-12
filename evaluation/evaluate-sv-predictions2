@@ -27,6 +27,8 @@ from bitarray import bitarray
 from collections import defaultdict
 import math
 
+import vcf
+
 __author__ = "Tobias Marschall and Alexander Schönhuth"
 
 usage = """%prog [options] <truth> <predictions0.vcf> [<predictions1.vcf>...<predictionsN.vcf>]
@@ -1343,6 +1345,37 @@ def print_results_ascii(results, length_ranges, true_indel_counts, print_typing)
 				print(right_pad(tool_stats.name,w0), left_pad(str(tool_stats.deletion_count),w), format_value(tool_stats.deletion_precision,w), format_value(tool_stats.deletion_mix_hits,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
 	print('='*wt)
 
+def export_best_results(results, length_ranges, true_indel_counts, outputvcf="besthits.vcf"):
+	"""Export the best results in this benchmark"""
+	assert len(results) == len(length_ranges)
+	
+	def export_best_results2vcf( length_range, inputvcf, outputvcf, svtype='DEL' ):
+		vcf_reader = vcf.Reader(open(inputvcf, 'r'))
+		vcf_writer = vcf.Writer(open(outputvcf, 'a'), vcf_reader)
+		for vcfrec in vcf_reader:
+			if not vcfrec.is_sv and vcfrec['INFO'] != svtype:
+				continue
+			size = vcfrec.end - vcfrec.start
+			if length_range[0] <= size <= length_range[1]:
+				vcf_writer.write_record(vcfrec)
+		vcf_writer.close()
+			
+	
+	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
+		best = ToolStatistics()
+		for tool_stats in toolwise_results:
+			best.improve(tool_stats)
+		for tool_stats in toolwise_results:
+			# Select on best precision first
+			if tool_stats.deletion_precision == best.deletion_precision:
+				print('{}\t{}\t{}'.format( 'DEL', length_range, tool_stats.name))
+				export_best_results2vcf(length_range, tool_stats.name, outputvcf, svtype='DEL' )
+				
+			if tool_stats.insertion_precision == best.insertion_precision:
+				print('{}\t{}\t{}'.format( 'INS', length_range, tool_stats.name))
+				export_best_results2vcf(length_range, tool_stats.name, outputvcf, svtype='INS' )
+
+
 def print_results_latex(results, length_ranges, true_indel_counts):
 	"""Input: list with a lists of ToolStatistics for each length range."""
 	assert len(results) == len(length_ranges)
@@ -1521,6 +1554,8 @@ def main():
 					help="LaTeX output.")
 	output_options.add_option("-T", action="store_true", dest="print_tag_stats", default=False,
 					help="Create statistics on tags (field 5 in input files), i.e. print tables showing which tags in predictions match which tags in true variants.")
+	output_options.add_option("-b", action="store", dest="export_best_results", default=None,
+					help="Export best scoring results")
 	output_options.add_option("-P", action="store", dest="plot_directory", default=None,
 					help="Plot accuracy of predictions for each tool and length range and save plots to given directory.")
 	output_options.add_option("-l", action="store", dest="true_var_outfile", default=None,
@@ -1675,6 +1710,8 @@ def main():
 					print('\\begin{center}')
 					print('\\includegraphics[width=\\textwidth]{%s}'%ins_filename)
 					print('\\end{center}')
+	if options.export_best_results != None:
+		export_best_results(results, length_ranges, true_indel_counts, outputvcf=options.export_best_results)
 	if options.true_var_outfile != None:
 		f = open(options.true_var_outfile, 'w')
 		print('#true_chrom true_coord1 true_coord2 true_var_type true_tag', end='', file=f)
