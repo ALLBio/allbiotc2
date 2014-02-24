@@ -25,9 +25,9 @@ import os
 import re
 from bitarray import bitarray
 from collections import defaultdict
+import collections
 import math
-
-import vcf
+import pickle
 
 __author__ = "Tobias Marschall and Alexander Schönhuth"
 
@@ -1345,6 +1345,82 @@ def print_results_ascii(results, length_ranges, true_indel_counts, print_typing)
 				print(right_pad(tool_stats.name,w0), left_pad(str(tool_stats.deletion_count),w), format_value(tool_stats.deletion_precision,w), format_value(tool_stats.deletion_mix_hits,w), format_value(tool_stats.deletion_recall,w), format_value(tool_stats.deletion_exclusivity,w), format_value(tool_stats.deletion_f,w), format_value(tool_stats.deletion_avg_lendiff,w,1.0), format_value(tool_stats.deletion_avg_distance,w,1.0), sep='')
 	print('='*wt)
 
+def plot_best_results(results, length_ranges, true_indel_counts, outputprefix="best_"):
+	"""Export the results in this benchmark as a plot"""
+	assert len(results) == len(length_ranges)
+	# each tool is a key
+	plot_data = collections.OrderedDict()
+
+	for length_range,true_indels,toolwise_results in zip(length_ranges,true_indel_counts,results):
+		best = ToolStatistics()
+
+		for tool_stats in toolwise_results:
+			best.improve(tool_stats)
+
+		for tool_stats in toolwise_results:
+			tool_name = os.path.basename(tool_stats.name)
+			plot_data[ tool_name ] = plot_data.get(tool_name,{})
+
+			plot_data[ tool_name ]['del_count'] = plot_data[ tool_name ].get('del_count',[])
+			plot_data[ tool_name ]['del_count'].append(tool_stats.deletion_count)
+
+			plot_data[ tool_name ]['del_prec'] = plot_data[ tool_name ].get('del_prec',[])
+			plot_data[ tool_name ]['del_prec'].append(tool_stats.deletion_precision)
+
+			plot_data[ tool_name ]['del_recall'] = plot_data[ tool_name ].get('del_recall',[])
+			plot_data[ tool_name ]['del_recall'].append(tool_stats.deletion_recall)
+
+			plot_data[ tool_name ]['del_fscore'] = plot_data[ tool_name ].get('del_fscore',[])
+			plot_data[ tool_name ]['del_fscore'].append(tool_stats.deletion_f)
+
+			plot_data[ tool_name ]['inst_count'] = plot_data[ tool_name ].get('ins_count',[])
+			plot_data[ tool_name ]['inst_count'].append(tool_stats.deletion_count)
+
+			plot_data[ tool_name ]['ins_prec'] = plot_data[ tool_name ].get('ins_prec',[])
+			plot_data[ tool_name ]['ins_prec'].append(tool_stats.insertion_precision)
+
+			plot_data[ tool_name ]['ins_recall'] = plot_data[ tool_name ].get('ins_recall',[])
+			plot_data[ tool_name ]['ins_recall'].append(tool_stats.insertion_recall)
+
+			plot_data[ tool_name ]['ins_fscore'] = plot_data[ tool_name ].get('ins_fscore',[])
+			plot_data[ tool_name ]['ins_fscore'].append(tool_stats.insertion_f)
+
+	plot_ready = {
+	    'factors': plot_data.keys(), 
+	    'columnames':["{}-{}".format(lr[0],lr[1]) for lr in length_ranges],
+	    'data': plot_data
+	}
+	
+	fd = open('{}.pickle'.format(outputprefix), 'wb')
+	pickle.dump(plot_ready, fd)
+	fd.close()
+	return
+
+    # # plot all plots
+    # for measure_type in ['del_prec']:
+    #   import matplotlib.pyplot as plt
+    #   labels = ["{}-{}".format(lr[0],lr[1]) for lr in length_ranges]
+    #   legend = []
+    #   for tool, values in plot_data.items():
+    #       x = xrange(len(labels))
+    #       # You can specify a rotation for the tick labels in degrees or with keywords.
+    #       plt.xticks(x, labels, rotation='vertical')
+    #       # Pad margins so that markers don't get clipped by the axes
+    #       # plt.margins(0.2)
+    #       # Tweak spacing to prevent clipping of tick-labels
+    #       # plt.subplots_adjust(bottom=0.15)
+    #       
+    #       legend.append(tool)
+    #       print(legend)
+    #       print( values[ measure_type])
+    #       plt.plot( x, values[ measure_type] )
+    #       # plt.legend(legend, loc='upper left')
+    # 
+    #   plt.savefig("{}{}.pdf".format(outputprefix, measure_type), format='pdf')
+    #   plt.close()
+
+
+	
 def export_best_results(results, length_ranges, true_indel_counts, outputvcf="besthits.vcf"):
 	"""Export the best results in this benchmark"""
 	assert len(results) == len(length_ranges)
@@ -1556,6 +1632,9 @@ def main():
 					help="Create statistics on tags (field 5 in input files), i.e. print tables showing which tags in predictions match which tags in true variants.")
 	output_options.add_option("-b", action="store", dest="export_best_results", default=None,
 					help="Export best scoring results")
+	output_options.add_option("-e", action="store", dest="plot_best_results", default=None,
+					help="Plot summary of table")
+
 	output_options.add_option("-P", action="store", dest="plot_directory", default=None,
 					help="Plot accuracy of predictions for each tool and length range and save plots to given directory.")
 	output_options.add_option("-l", action="store", dest="true_var_outfile", default=None,
@@ -1712,6 +1791,11 @@ def main():
 					print('\\end{center}')
 	if options.export_best_results != None:
 		export_best_results(results, length_ranges, true_indel_counts, outputvcf=options.export_best_results)
+
+	if options.plot_best_results != None:
+		# also plot the pictures for the PRECISION, RECALL and F-SCORE
+		plot_best_results(results, length_ranges, true_indel_counts, outputprefix=options.plot_best_results)
+
 	if options.true_var_outfile != None:
 		f = open(options.true_var_outfile, 'w')
 		print('#true_chrom true_coord1 true_coord2 true_var_type true_tag', end='', file=f)
