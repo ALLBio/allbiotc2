@@ -13,7 +13,7 @@
 MAKEFILE_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 .ONESHELL:
-#SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
+SHELL := $(MAKEFILE_DIR)/modules/logwrapper.sh
 include $(MAKEFILE_DIR)/modules.mk
 include $(MAKEFILE_DIR)/conf.mk
 export MAKEFILE_DIR THIS_MAKEFILE
