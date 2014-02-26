@@ -54,7 +54,7 @@ endif
 
 # outputdir for all recipies:
 #SV_PROGRAMS := gasv delly breakdancer pindel prism clever svdetect
-SV_PROGRAMS := gasv delly breakdancer pindel clever svdetect prism
+SV_PROGRAMS := gasv delly breakdancer pindel clever svdetect # prism
 SV_OUTPUT := $(addprefix $(OUT_DIR)/, $(foreach s, $(SAMPLE), $(foreach p, $(SV_PROGRAMS), $(s).$(p).vcf)))
 sv_vcf: $(SV_OUTPUT)
 

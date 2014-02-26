@@ -80,7 +80,7 @@ $(BDCFG):
 # Turning off the tandem duplication: -t 0
 # Enable long insertion : -l 1
 %.pindel/pindel_res: %.pindel/pindel.cfg %.bam %.bam.bai
-	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -i $< -o $@ -I 0 -r 0 -t 0 -l 1 -T $(PINDEL_THREADS) && touch $@
+	SGE_RREQ="-now no -pe $(SGE_PE) $(PINDEL_THREADS)" $(PINDEL) -f $(REFERENCE) -w 1 -i $< -o $@ -I 0 -r 0 -t 0 -l 1 -T $(PINDEL_THREADS) && touch $@
 
 %.pindel.vcf: %.pindel/pindel_res
 	$(PINDEL2VCF) -P $< -r $(REFERENCE) -R benchmarkgenome -d $(shell date +'%Y%m%d%H%M%S') -v $@
