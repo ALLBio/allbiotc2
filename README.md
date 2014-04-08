@@ -1,10 +1,17 @@
-# ALLBio testcase #2
+
+
+# SV-Autopilot
+## Structural Variation AUTOmated PIpeLine Optimization Tool
+by : Wai Yi	Leung,	Tobias	Marschall,	Laurent	Falquet, Yogesh Paudel, Hailiang Mei,	Alex Schoenhuth and Tiffanie Yael Moss
+
+
 
 This repository is used to store scripts written during the hackathon of ALLBio Testcase 2.
-The aims of this project are:
 
-* to provide a pipeline for Structural variation calling
-* use this pipeline for benchmarking sv callers
+We aim at providing :
+
+* a pipeline for automated Structural variation calling
+* an automated approach for benchmarking (new) SV tools.
 
 
 More information about the project can be found at the following websites:
@@ -22,6 +29,15 @@ Grab a copy of this repository from GitHub to your home folder and store this in
 	cd allbiotc2/
 	make install
 The `make install` command will do a system-wide install. This step requires `sudo` rights.
+
+## Installation instructions for sysadmins (advanced)
+
+Please take a closer look in the following repository where the installation scripts are located. These scripts were used to install the workshop-ready and production-ready virtual machine.
+
+	https://github.com/ALLBio/allbiovm
+
+Comments are welcome via the ticketing system from Github.
+
 
 
 ## Preprocessing reference VCF (optional)
