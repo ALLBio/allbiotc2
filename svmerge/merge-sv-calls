@@ -540,7 +540,6 @@ class DeletionList(VariationList):
 		
 
 	def merge(self, mode='fixed_distance', offset=50, lendiff=20, overlap_ratio=0.5):
-
 		if mode not in ['fixed_distance', 'overlap', 'significant']:
 			print("Passed wrong argument to mode. Allowed are 'fixed_distance', 'overlap' or 'significant'", file=sys.stderr)
 			sys.exit(1)
@@ -648,12 +647,12 @@ class DeletionList(VariationList):
 				length0 = end0 - start0 + 1
 				index0 = deletion[-1]
 
-				print('Treating deletion %d %d from %d' % (start0, end0, index0), file=mergelog)
-				print('Active deletions:', active_deletions, file=mergelog)
-				print('Active cliques:', active_cliques, '\n', file=mergelog)
+#				print('Treating deletion %d %d from %d' % (start0, end0, index0), file=mergelog)
+#				print('Active deletions:', active_deletions, file=mergelog)
+#				print('Active cliques:', active_cliques, '\n', file=mergelog)
 
-				if len(active_cliques) >= 2:
-					print('%d active cliques!\n' % (len(active_cliques)), file=mergelog)
+#				if len(active_cliques) >= 2:
+#					print('%d active cliques!\n' % (len(active_cliques)), file=mergelog)
 				# first prune active_cliques and active_deletions:
 
 				# prune active_cliques
@@ -722,7 +721,7 @@ class DeletionList(VariationList):
 						if active_cliques[i][1] < start0:
 							newdel = merge_deletions_in_clique(active_cliques[i][0])
 							merged_deletions[chromosome].append(newdel)
-							print('Pruning ', active_cliques[i][0], '\nnew, merged deletion:', newdel, '\n', file=mergelog)
+#							print('Pruning ', active_cliques[i][0], '\nnew, merged deletion:', newdel, '\n', file=mergelog)
 							active_cliques.remove(active_cliques[i])
 							continue
 
@@ -732,7 +731,7 @@ class DeletionList(VariationList):
 						if interclique == active_cliques[i][0]:
 							intersect = True
 							active_cliques[i][0].add(deletion)
-							print('Contained, yielding  ', active_cliques[i][0], '\n', file=mergelog)
+#							print('Contained, yielding  ', active_cliques[i][0], '\n', file=mergelog)
 							active_cliques[i][1] = max(active_cliques[i][1], end0)
 						
 						# the intersection of the active clique with the neighborhood is at least not empty
@@ -741,7 +740,7 @@ class DeletionList(VariationList):
 							interclique.add(deletion)
 							crit = max(x[1] for x in interclique) # x is a deletion, x[1] is the end point
 							new_cliques.append([interclique, crit])
-							print('Splitting, yielding  ', new_cliques[-1][0], '\n', file=mergelog)
+#							print('Splitting, yielding  ', new_cliques[-1][0], '\n', file=mergelog)
 
 						i += 1
 
@@ -751,7 +750,7 @@ class DeletionList(VariationList):
 						if active_cliques[i][1] < centerpoint0 - offset:
 							newdel = merge_deletions_in_clique(active_cliques[i][0])
 							merged_deletions[chromosome].append(newdel)
-							print('Pruning ', active_cliques[i][0], '\nnew, merged deletion:', newdel, '\n', file=mergelog)
+#							print('Pruning ', active_cliques[i][0], '\nnew, merged deletion:', newdel, '\n', file=mergelog)
 							active_cliques.remove(active_cliques[i])
 							continue
 
@@ -761,7 +760,7 @@ class DeletionList(VariationList):
 						if interclique == active_cliques[i][0]:
 							intersect = True
 							active_cliques[i][0].add(deletion)
-							print('Contained, yielding  ', active_cliques[i][0], '\n', file=mergelog)
+#							print('Contained, yielding  ', active_cliques[i][0], '\n', file=mergelog)
 							active_cliques[i][1] = max(active_cliques[i][1], end0)
 
 						# the intersection of the active clique with the neighborhood is at least not empty
@@ -771,7 +770,7 @@ class DeletionList(VariationList):
 							crit = max((x[1]-x[0]+1)/2 for x in interclique) 
 							# x is a deletion, (x[1]-x[0]+1)/2 is the centerpoint
 							new_cliques.append([interclique, crit])
-							print('Splitting, yielding  ', active_cliques[-1][0], '\n', file=mergelog)
+#							print('Splitting, yielding  ', active_cliques[-1][0], '\n', file=mergelog)
 							
 						i += 1
 
@@ -787,14 +786,13 @@ class DeletionList(VariationList):
 					if mode == 'overlap':
 						active_cliques.append([set([deletion]), end0])
 					elif mode == 'fixed_distance':
-						#print(active_cliques, deletion, centerpoint0)
+#						print(active_cliques, deletion, centerpoint0)
 						active_cliques.append([set([deletion]), centerpoint0])
 					elif mode == 'significant':
 						pass
 
 			for clique in active_cliques:
 				merged_deletions[chromosome].append(merge_deletions_in_clique(clique[0]))
-
 		return merged_deletions #, strangeguys
 
 class InsertionList(VariationList):
@@ -958,7 +956,6 @@ def main():
 		delstats = None
 		insstats = None
 
-
 	alldeletions = join_callsets('DEL', *delcalls) # that also sorts the calls
 #	allinsertions = join_callsets('INS', *inscalls)
 
@@ -968,6 +965,7 @@ def main():
 	mergedvars.write_vcf(tool_names, None)
 #	strangeguysvars = VariationList_from_dict(alldeletions.merge(options.mode)[1], 'DEL')
 #	strangeguysvars.write_spaced('strangedeletions.mode-%s.txt' % (options.mode))
+
 
 	alldeletions.write_spaced(tool_names, 'alldeletions.txt')
 #	allinsertions.write_spaced('allinsertions.txt')
