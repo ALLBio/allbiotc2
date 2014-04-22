@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 from __future__ import print_function
 from optparse import OptionParser
 import sys
@@ -7,7 +7,7 @@ import math
 import gzip
 import datetime
 from collections import defaultdict
-from fasta import FastaReader
+from Bio import SeqIO
 
 __author__ = "Tobias Marschall"
 
@@ -115,16 +115,17 @@ if __name__ == '__main__':
 	statsfile = open(statsfilename, "w")
 
 	# Read reference sequence
-	fasta_reader = FastaReader(args[1])
+	fasta_sequences = SeqIO.parse(open(args[1]),'fasta')
 	reference = {}
 	reference_order = []
-	for s in fasta_reader:
-		chromosome = s.name.split()[0]
+	for fasta in fasta_sequences:
+		name, sequence = fasta.id, fasta.seq.tostring()
+		chromosome = name.split()[0]
 		if chromosome[:3] == 'chr':
 			chromosome = chromosome[3:]
 		print('Loaded chromosome "{}"'.format(chromosome), file=sys.stderr)
 		reference_order.append(chromosome)
-		reference[chromosome] = s.sequence.upper()
+		reference[chromosome] = sequence.upper()
 
 	deletion_stats = Stats()
 	insertion_stats = Stats()
