@@ -247,9 +247,8 @@ class VariationList:
 		
 		headerline = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"
 		print(headerline, file=outfile)
-
-		for chromosome in self.variations.keys():
-			for variation in self.variations[chromosome]:
+		for chromosome in sorted(self.variations.keys()):
+			for variation in sorted(self.variations[chromosome]):
 				
 				chrom = chromosome[3:]
 				var_type = self.var_type
@@ -266,8 +265,14 @@ class VariationList:
 					toolstring += "%s," % (tool_names[index])
 				# FIXME: fix last comma
 				toolstring = toolstring[:-1]
-				infostring = "SVTYPE=%s;TOOLS=%s;MAXDIST=%d;MAXLENDIFF=%d" % (var_type, toolstring, maxdist, maxlendiff)
+				infostring = "SVTYPE=%s;TOOLS=%s;MAXDIST=%d;MAXLENDIFF=%d;END=%d" % (var_type, toolstring, maxdist, maxlendiff, end)
 				vcfline = "%s\t%d\t.\t%s\t%s\t.\tPASS\t%s" % (chrom, start, ref, alt, infostring)
+				if var_type == 'DEL':
+					if end-start < 20 or end-start > 50000:
+						continue
+				if var_type == 'INS':
+					if len(alt) < 20 or len(alt) > 50000:
+						continue
 				print(vcfline, file=outfile)
 
 def VariationList_from_dict(vardict, var_type=None):
@@ -309,6 +314,7 @@ class DeletionList(VariationList):
 						print('Expecting sample names "mother", "father", and "child" when in trio mode.', file=sys.stderr)
 						sys.exit(1)
 			fields = line.split()
+			#print(fields)
 			ref = fields[3]
 			alt = fields[4]
 			info = fields[7]
